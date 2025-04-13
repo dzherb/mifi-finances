@@ -16,8 +16,15 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "asgi-lifespan==2.*",
+    "configargparse>=1.7",
+    "httpx>=0.28.1",
     "mypy>=1.15.0",
+    "psycopg[binary]>=3.2.6",
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.26.0",
     "ruff>=0.11.5",
+    "sqlalchemy-utils>=0.41.2",
 ]
 
 [tool.mypy]

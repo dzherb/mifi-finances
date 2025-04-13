@@ -5,11 +5,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.v1.router import api_router
+from core.config import settings
+from db.session import create_async_engine, create_async_session_factory
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    app.state.engine = create_async_engine(settings.DATABASE_URL)
+    app.state.async_session = create_async_session_factory(app.state.engine)
     yield
+    await app.state.engine.dispose()
 
 
 app = FastAPI(

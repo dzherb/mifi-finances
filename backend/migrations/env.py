@@ -56,8 +56,11 @@ async def run_async_migrations() -> None:
 
     """
     ini_config = config.get_section(config.config_ini_section, {})
+    if 'sqlalchemy.url' not in ini_config:
+        ini_config['sqlalchemy.url'] = settings.DATABASE_URL
+
     connectable = async_engine_from_config(
-        ini_config | {'sqlalchemy.url': settings.DATABASE_URL},
+        ini_config,
         prefix='sqlalchemy.',
         poolclass=pool.NullPool,
     )
