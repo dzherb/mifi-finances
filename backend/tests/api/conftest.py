@@ -9,6 +9,8 @@ from fastapi import FastAPI
 import httpx
 from httpx import ASGITransport, AsyncClient
 import pytest
+import schemathesis
+from schemathesis.specs.openapi.schemas import BaseOpenAPISchema
 from starlette.types import ASGIApp
 
 from api.v1.router import api_router
@@ -56,6 +58,11 @@ async def app(migrated_db: str) -> AsyncGenerator[ASGIApp]:
 
     async with LifespanManager(app) as manager:
         yield manager.app
+
+
+@pytest.fixture
+async def openapi(app: FastAPI) -> AsyncGenerator[BaseOpenAPISchema]:
+    yield schemathesis.from_asgi('/openapi.json', app)
 
 
 @pytest.fixture
