@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from alembic import command
 from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
 import httpx
 from httpx import ASGITransport, AsyncClient
 import pytest
@@ -53,7 +54,7 @@ async def app(migrated_db: str) -> AsyncGenerator[ASGIApp]:
         yield
         await app.state.engine.dispose()
 
-    app = FastAPI(lifespan=lifespan)
+    app = FastAPI(lifespan=lifespan, default_response_class=ORJSONResponse)
     app.include_router(api_router, prefix='/api/v1')
 
     async with LifespanManager(app) as manager:
