@@ -23,6 +23,7 @@ from services.auth import (
     get_token_data,
     get_user_from_refresh_token,
     login_user,
+    refresh_tokens,
 )
 
 
@@ -70,8 +71,9 @@ async def test_get_current_user_fail_on_user_absence(
             session=session,
             token=token,
         )
-        assert exc.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert exc.value.detail == CREDENTIALS_EXCEPTION.detail
+
+    assert exc.value.status_code == status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == CREDENTIALS_EXCEPTION.detail
 
 
 async def test_get_current_user_forbidden(
@@ -86,8 +88,9 @@ async def test_get_current_user_forbidden(
             session=session,
             token=token,
         )
-        assert exc.value.status_code == status.HTTP_403_FORBIDDEN
-        assert exc.value.detail == 'Not enough permissions'
+
+    assert exc.value.status_code == status.HTTP_403_FORBIDDEN
+    assert exc.value.detail == 'Not enough permissions'
 
 
 async def test_get_user_from_refresh_token_success(
@@ -122,17 +125,50 @@ async def test_get_user_from_refresh_token_expired(
 
     with pytest.raises(HTTPException) as exc:
         await get_user_from_refresh_token(session, token)
-        assert exc.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert exc.value.detail == 'Token is expired'
+
+    assert exc.value.status_code == status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == 'Token is expired'
 
 
 async def test_login_user_returns_correct_tokens(
     session: AsyncSession,
     user: User,
 ) -> None:
-    pair = await login_user(session, 'user', 'password')
-    access_token_data = get_token_data(pair.access_token, AccessToken)
-    refresh_token_data = get_token_data(pair.refresh_token, RefreshToken)
+    token_pair = await login_user(session, 'user', 'password')
+    access_token_data = get_token_data(token_pair.access_token, AccessToken)
+    refresh_token_data = get_token_data(token_pair.refresh_token, RefreshToken)
 
     assert access_token_data.sub == str(user.id)
     assert refresh_token_data.sub == str(user.id)
+
+
+async def test_tokens_refresh_success(
+    session: AsyncSession,
+    user: User,
+) -> None:
+    old_token_pair = await login_user(session, 'user', 'password')
+    new_token_pair = await refresh_tokens(
+        session,
+        old_token_pair.refresh_token,
+    )
+
+    user_from_token = await get_current_user(
+        SecurityScopes(),
+        session,
+        new_token_pair.access_token,
+    )
+    assert user_from_token.id == user.id
+
+
+async def test_tokens_refresh_fail_on_second_attempt(
+    session: AsyncSession,
+    user: User,
+) -> None:
+    old_token_pair = await login_user(session, 'user', 'password')
+    await refresh_tokens(session, old_token_pair.refresh_token)
+
+    with pytest.raises(HTTPException) as exc:
+        await refresh_tokens(session, old_token_pair.refresh_token)
+
+    assert exc.value.status_code == status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == 'Token is no longer active'
