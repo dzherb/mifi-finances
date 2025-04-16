@@ -26,10 +26,10 @@ dev = [
     "psycopg[binary]>=3.2.6",
     "pytest>=8.3.5",
     "pytest-asyncio>=0.26.0",
+    "pytest-xdist>=3.6.1",
     "ruff>=0.11.5",
     "schemathesis>=3.39.15",
     "sqlalchemy-utils>=0.41.2",
-    "types-passlib>=1.7.7.20250408",
 ]
 
 [tool.mypy]
