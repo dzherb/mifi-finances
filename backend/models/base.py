@@ -1,8 +1,8 @@
-from sqlmodel import Field, SQLModel
+from sqlmodel import SQLModel
 
 
-class Base(SQLModel):
-    id: int | None = Field(default=None, primary_key=True)
+class BaseModel(SQLModel):
+    pass
 
 
 def import_all_models() -> None:
