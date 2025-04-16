@@ -1,8 +1,8 @@
-from typing import Annotated
+from typing import Annotated, Final
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import SecurityScopes
-from jwt import InvalidTokenError
+from jwt import ExpiredSignatureError, InvalidTokenError
 from pydantic import ValidationError
 from sqlalchemy.exc import DataError
 from sqlmodel import select
@@ -18,14 +18,19 @@ from core.security import (
 )
 from dependencies import get_session
 from models.user import User
-from schemas.auth import AccessToken, RefreshToken, TokenPair
+from schemas.auth import AccessToken, BaseToken, RefreshToken, TokenPair
 
-CREDENTIALS_EXCEPTION = HTTPException(
+CREDENTIALS_EXCEPTION: Final[HTTPException] = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail='Could not validate credentials',
 )
 
-AUTH_EXCEPTION = HTTPException(
+TOKEN_IS_EXPIRED_EXCEPTION: Final[HTTPException] = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail='Token is expired',
+)
+
+AUTH_EXCEPTION: Final[HTTPException] = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail='Incorrect username or password',
 )
@@ -55,11 +60,7 @@ async def get_current_user(
     session: Annotated[AsyncSession, Depends(get_session)],
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> User:
-    try:
-        token_data = AccessToken(**decode_token(token))
-    except (InvalidTokenError, ValidationError) as e:
-        raise CREDENTIALS_EXCEPTION from e
-
+    token_data = get_token_data(token, AccessToken)
     user = await session.get(User, int(token_data.sub))
     if user is None:
         raise CREDENTIALS_EXCEPTION
@@ -78,11 +79,7 @@ async def get_user_from_refresh_token(
     session: Annotated[AsyncSession, Depends(get_session)],
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> User:
-    try:
-        token_data = RefreshToken(**decode_token(token))
-    except (InvalidTokenError, ValidationError) as e:
-        raise CREDENTIALS_EXCEPTION from e
-
+    token_data = get_token_data(token, RefreshToken)
     user = await session.get(User, int(token_data.sub))
     if user is None:
         raise CREDENTIALS_EXCEPTION
@@ -93,10 +90,19 @@ async def get_user_from_refresh_token(
     ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Token is expired',
+            detail='Token is no longer active',
         )
 
     return user
+
+
+def get_token_data[T: BaseToken](token: str, model: type[T]) -> T:
+    try:
+        return model(**decode_token(token))
+    except ExpiredSignatureError as e:
+        raise TOKEN_IS_EXPIRED_EXCEPTION from e
+    except (InvalidTokenError, ValidationError) as e:
+        raise CREDENTIALS_EXCEPTION from e
 
 
 async def login_user(
