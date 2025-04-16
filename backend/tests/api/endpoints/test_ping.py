@@ -17,9 +17,6 @@ async def test_ping_extra(admin_client: AsyncClient, migrated_db: str) -> None:
     assert data['current_user'] == 'admin'
 
 
-async def test_ping_extra_unauthorized(
-    client: AsyncClient,
-    migrated_db: str,
-) -> None:
+async def test_ping_extra_unauthorized(client: AsyncClient) -> None:
     response = await client.get('/api/v1/ping/extra')
     assert response.status_code == status.HTTP_401_UNAUTHORIZED

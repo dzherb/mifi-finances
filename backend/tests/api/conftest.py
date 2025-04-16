@@ -94,8 +94,8 @@ async def openapi(app: FastAPI) -> AsyncGenerator[BaseOpenAPISchema]:
 
 
 @pytest.fixture()
-async def user(session: AsyncSession):
-    await create_user(
+async def user(session: AsyncSession) -> AsyncGenerator[User]:
+    yield await create_user(
         session,
         username='user',
         password='password',
@@ -103,8 +103,8 @@ async def user(session: AsyncSession):
 
 
 @pytest.fixture()
-async def admin_user(session: AsyncSession):
-    return await create_user(
+async def admin_user(session: AsyncSession) -> AsyncGenerator[User]:
+    yield await create_user(
         session,
         username='admin',
         password='password',
