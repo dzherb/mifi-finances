@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Annotated, Final
 
 from fastapi import Depends, HTTPException, status
@@ -16,7 +17,7 @@ from core.security import (
     TokenData,
     verify_password,
 )
-from dependencies import get_session
+from dependencies.db import Session
 from models.user import User
 from schemas.auth import AccessToken, BaseToken, RefreshToken, TokenPair
 
@@ -57,7 +58,7 @@ async def authenticate_user(
 
 async def get_current_user(
     security_scopes: SecurityScopes,
-    session: Annotated[AsyncSession, Depends(get_session)],
+    session: Session,
     token: Annotated[str, Depends(oauth2_scheme)],
 ) -> User:
     token_data = get_token_data(token, AccessToken)
@@ -76,10 +77,10 @@ async def get_current_user(
 
 
 async def get_user_from_refresh_token(
-    session: Annotated[AsyncSession, Depends(get_session)],
-    token: Annotated[str, Depends(oauth2_scheme)],
+    session: AsyncSession,
+    refresh_token: str,
 ) -> User:
-    token_data = get_token_data(token, RefreshToken)
+    token_data = get_token_data(refresh_token, RefreshToken)
     user = await session.get(User, int(token_data.sub))
     if user is None:
         raise CREDENTIALS_EXCEPTION
@@ -112,12 +113,35 @@ async def login_user(
 ) -> TokenPair:
     user = await authenticate_user(session, username, password)
 
-    scopes = []
-    if user.is_admin:
-        scopes.append('admin')
-
     payload: TokenData = {'sub': str(user.id)}
+    scopes = _get_scopes_for_user(user)
     return TokenPair(
         access_token=create_access_token(payload, scopes=scopes),
         refresh_token=create_refresh_token(payload),
     )
+
+
+async def refresh_tokens(
+    session: AsyncSession,
+    refresh_token: str,
+) -> TokenPair:
+    user = await get_user_from_refresh_token(session, refresh_token)
+    payload: TokenData = {'sub': str(user.id)}
+    scopes = _get_scopes_for_user(user)
+    token_pair = TokenPair(
+        access_token=create_access_token(payload, scopes=scopes),
+        refresh_token=create_refresh_token(payload),
+    )
+    user.last_refresh = datetime.now(timezone.utc)
+    await session.refresh(user)
+    await session.commit()
+
+    return token_pair
+
+
+def _get_scopes_for_user(user: User) -> list[str]:
+    scopes: list[str] = []
+    if user.is_admin:
+        scopes.append('admin')
+
+    return scopes

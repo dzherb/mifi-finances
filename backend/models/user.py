@@ -14,7 +14,6 @@ class User(BaseModel, SimpleIdMixin, TimestampMixin, table=True):
     password: str
 
     last_refresh: datetime | None = Field(
-        default=None,
         sa_column=Column(DateTime(timezone=True), nullable=True),
     )
     is_admin: bool = False

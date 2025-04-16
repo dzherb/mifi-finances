@@ -4,12 +4,11 @@ from fastapi import APIRouter, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import ValidationError
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 from api.responses import UNAUTHORIZED
-from dependencies import get_session
-from schemas.auth import LoginRequest, TokenPair
-from services.auth import login_user
+from dependencies.db import Session
+from schemas.auth import LoginRequest, TokenPair, TokenRefresh
+from services.auth import login_user, refresh_tokens
 
 router = APIRouter()
 
@@ -17,7 +16,7 @@ router = APIRouter()
 @router.post('/login', responses=UNAUTHORIZED)  # type: ignore
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    session: Annotated[AsyncSession, Depends(get_session)],
+    session: Session,
 ) -> TokenPair:
     try:
         login_data = LoginRequest(
@@ -32,3 +31,14 @@ async def login(
         password=login_data.password,
         session=session,
     )
+
+
+@router.post(
+    path='/refresh',
+    responses=UNAUTHORIZED,  #  type: ignore
+)
+async def refresh(
+    session: Session,
+    refresh_token: TokenRefresh,
+) -> TokenPair:
+    return await refresh_tokens(session, refresh_token.refresh_token)
