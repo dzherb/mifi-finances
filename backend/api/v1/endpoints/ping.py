@@ -32,7 +32,7 @@ async def ping() -> Ping:
 
 
 @router.get('/extra', responses={**UNAUTHORIZED, **FORBIDDEN})  # type: ignore
-async def ping_more(
+async def ping_extra(
     session: Annotated[AsyncSession, Depends(get_session)],
     user: Annotated[User, Security(get_current_user, scopes=['admin'])],
 ) -> PingExpanded:

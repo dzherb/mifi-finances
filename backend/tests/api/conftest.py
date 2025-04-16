@@ -18,6 +18,7 @@ from starlette.types import ASGIApp
 
 from api.v1.router import api_router
 from db.session import create_async_engine, create_async_session_factory
+from models.user import User
 from services.auth import login_user
 from services.users import create_user
 from tests.utils import get_alembic_config, tmp_database
@@ -92,6 +93,25 @@ async def openapi(app: FastAPI) -> AsyncGenerator[BaseOpenAPISchema]:
     yield schemathesis.from_asgi('/openapi.json', app)
 
 
+@pytest.fixture()
+async def user(session: AsyncSession):
+    await create_user(
+        session,
+        username='user',
+        password='password',
+    )
+
+
+@pytest.fixture()
+async def admin_user(session: AsyncSession):
+    return await create_user(
+        session,
+        username='admin',
+        password='password',
+        is_admin=True,
+    )
+
+
 @pytest.fixture
 async def client(app: ASGIApp) -> AsyncGenerator[AsyncClient]:
     async with httpx.AsyncClient(
@@ -102,17 +122,27 @@ async def client(app: ASGIApp) -> AsyncGenerator[AsyncClient]:
 
 
 @pytest.fixture
+async def authenticated_client(
+    session: AsyncSession,
+    app: ASGIApp,
+    user: User,
+) -> AsyncGenerator[AsyncClient]:
+    token_pair = await login_user(session, user.username, 'password')
+    async with httpx.AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url='http://test.com',
+        headers={'Authorization': f'Bearer {token_pair.access_token}'},
+    ) as client:
+        yield client
+
+
+@pytest.fixture
 async def admin_client(
     session: AsyncSession,
     app: ASGIApp,
+    admin_user: User,
 ) -> AsyncGenerator[AsyncClient]:
-    user = await create_user(
-        session,
-        username='test',
-        password='password',
-        is_admin=True,
-    )
-    token_pair = await login_user(session, user.username, 'password')
+    token_pair = await login_user(session, admin_user.username, 'password')
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app),
         base_url='http://test.com',
