@@ -7,10 +7,13 @@ requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.15.2",
     "asyncpg>=0.30.0",
+    "bcrypt>=4.3.0",
     "fastapi>=0.115.12",
     "greenlet>=3.1.1",
     "orjson>=3.10.16",
     "pydantic-settings>=2.8.1",
+    "pyjwt>=2.10.1",
+    "python-multipart>=0.0.20",
     "sqlmodel>=0.0.24",
     "uvicorn>=0.34.0",
 ]
@@ -26,6 +29,7 @@ dev = [
     "ruff>=0.11.5",
     "schemathesis>=3.39.15",
     "sqlalchemy-utils>=0.41.2",
+    "types-passlib>=1.7.7.20250408",
 ]
 
 [tool.mypy]

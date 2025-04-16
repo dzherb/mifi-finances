@@ -12,10 +12,14 @@ from httpx import ASGITransport, AsyncClient
 import pytest
 import schemathesis
 from schemathesis.specs.openapi.schemas import BaseOpenAPISchema
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncEngine
+from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.types import ASGIApp
 
 from api.v1.router import api_router
 from db.session import create_async_engine, create_async_session_factory
+from services.auth import login_user
+from services.users import create_user
 from tests.utils import get_alembic_config, tmp_database
 
 
@@ -44,15 +48,37 @@ def migrated_db(db_url: str, migrated_db_template: str) -> Generator[str]:
 
 
 @pytest.fixture
-async def app(migrated_db: str) -> AsyncGenerator[ASGIApp]:
+def engine(migrated_db: str) -> Generator[AsyncEngine]:
+    yield create_async_engine(migrated_db)
+
+
+@pytest.fixture
+def session_factory(
+    engine: AsyncEngine,
+) -> Generator[async_sessionmaker[AsyncSession]]:
+    yield create_async_session_factory(
+        engine,
+    )
+
+
+@pytest.fixture
+async def session(
+    session_factory: async_sessionmaker[AsyncSession],
+) -> AsyncGenerator[AsyncSession]:
+    async with session_factory() as session:
+        yield session
+
+
+@pytest.fixture
+async def app(
+    engine: AsyncEngine,
+    session_factory: async_sessionmaker[AsyncSession],
+) -> AsyncGenerator[ASGIApp]:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
-        app.state.engine = create_async_engine(migrated_db)
-        app.state.async_session = create_async_session_factory(
-            app.state.engine,
-        )
+        app.state.engine = engine
+        app.state.async_session = session_factory
         yield
-        await app.state.engine.dispose()
 
     app = FastAPI(lifespan=lifespan, default_response_class=ORJSONResponse)
     app.include_router(api_router, prefix='/api/v1')
@@ -71,5 +97,25 @@ async def client(app: ASGIApp) -> AsyncGenerator[AsyncClient]:
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app),
         base_url='http://test.com',
+    ) as client:
+        yield client
+
+
+@pytest.fixture
+async def admin_client(
+    session: AsyncSession,
+    app: ASGIApp,
+) -> AsyncGenerator[AsyncClient]:
+    user = await create_user(
+        session,
+        username='test',
+        password='password',
+        is_admin=True,
+    )
+    token_pair = await login_user(session, user.username, 'password')
+    async with httpx.AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url='http://test.com',
+        headers={'Authorization': f'Bearer {token_pair.access_token}'},
     ) as client:
         yield client
