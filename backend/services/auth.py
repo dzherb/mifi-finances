@@ -115,6 +115,9 @@ async def login_user(
 
     payload: TokenData = {'sub': str(user.id)}
     scopes = _get_scopes_for_user(user)
+    user.last_refresh = datetime.now(timezone.utc)
+    session.add(user)
+    await session.commit()
     return TokenPair(
         access_token=create_access_token(payload, scopes=scopes),
         refresh_token=create_refresh_token(payload),
@@ -128,12 +131,12 @@ async def refresh_tokens(
     user = await get_user_from_refresh_token(session, refresh_token)
     payload: TokenData = {'sub': str(user.id)}
     scopes = _get_scopes_for_user(user)
+    user.last_refresh = datetime.now(timezone.utc)
     token_pair = TokenPair(
         access_token=create_access_token(payload, scopes=scopes),
         refresh_token=create_refresh_token(payload),
     )
-    user.last_refresh = datetime.now(timezone.utc)
-    await session.refresh(user)
+    session.add(user)
     await session.commit()
 
     return token_pair
