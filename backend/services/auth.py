@@ -56,15 +56,11 @@ async def authenticate_user(
     return user
 
 
-async def get_current_user(
+async def get_authenticated_token(
     security_scopes: SecurityScopes,
-    session: Session,
     token: Annotated[str, Depends(oauth2_scheme)],
-) -> User:
-    token_data = get_token_data(token, AccessToken)
-    user = await session.get(User, int(token_data.sub))
-    if user is None:
-        raise CREDENTIALS_EXCEPTION
+) -> AccessToken:
+    token_data = decode_and_get_token_data(token, AccessToken)
 
     for scope in security_scopes.scopes:
         if scope not in token_data.scopes:
@@ -73,6 +69,17 @@ async def get_current_user(
                 detail='Not enough permissions',
             )
 
+    return token_data
+
+
+async def get_current_user(
+    session: Session,
+    token: Annotated[AccessToken, Depends(get_authenticated_token)],
+) -> User:
+    user = await session.get(User, int(token.sub))
+    if user is None:
+        raise CREDENTIALS_EXCEPTION
+
     return user
 
 
@@ -80,7 +87,7 @@ async def get_user_from_refresh_token(
     session: AsyncSession,
     refresh_token: str,
 ) -> User:
-    token_data = get_token_data(refresh_token, RefreshToken)
+    token_data = decode_and_get_token_data(refresh_token, RefreshToken)
     user = await session.get(User, int(token_data.sub))
     if user is None:
         raise CREDENTIALS_EXCEPTION
@@ -97,7 +104,7 @@ async def get_user_from_refresh_token(
     return user
 
 
-def get_token_data[T: BaseToken](token: str, model: type[T]) -> T:
+def decode_and_get_token_data[T: BaseToken](token: str, model: type[T]) -> T:
     try:
         return model(**decode_token(token))
     except ExpiredSignatureError as e:

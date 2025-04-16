@@ -19,8 +19,9 @@ from services.auth import (
     AUTH_EXCEPTION,
     authenticate_user,
     CREDENTIALS_EXCEPTION,
+    decode_and_get_token_data,
+    get_authenticated_token,
     get_current_user,
-    get_token_data,
     get_user_from_refresh_token,
     login_user,
     refresh_tokens,
@@ -52,10 +53,13 @@ async def test_get_current_user_success(
     admin_user: User,
 ) -> None:
     token = create_access_token({'sub': str(admin_user.id)}, scopes=['admin'])
+    token_data = await get_authenticated_token(
+        SecurityScopes(scopes=['admin']),
+        token,
+    )
     user_out = await get_current_user(
-        security_scopes=SecurityScopes(scopes=['admin']),
         session=session,
-        token=token,
+        token=token_data,
     )
 
     assert user_out.id == admin_user.id
@@ -65,29 +69,25 @@ async def test_get_current_user_fail_on_user_absence(
     session: AsyncSession,
 ) -> None:
     token = create_access_token({'sub': '1'}, scopes=['admin'])
+    token_data = await get_authenticated_token(SecurityScopes(), token)
     with pytest.raises(HTTPException) as exc:
         await get_current_user(
-            security_scopes=SecurityScopes(scopes=['admin']),
             session=session,
-            token=token,
+            token=token_data,
         )
 
     assert exc.value.status_code == status.HTTP_401_UNAUTHORIZED
     assert exc.value.detail == CREDENTIALS_EXCEPTION.detail
 
 
-async def test_get_current_user_forbidden(
+async def test_get_authenticated_token_forbidden(
     session: AsyncSession,
     admin_user: User,
 ) -> None:
     # create token with no admin scope
     token = create_access_token({'sub': str(admin_user.id)})
     with pytest.raises(HTTPException) as exc:
-        await get_current_user(
-            security_scopes=SecurityScopes(scopes=['admin']),
-            session=session,
-            token=token,
-        )
+        await get_authenticated_token(SecurityScopes(scopes=['admin']), token)
 
     assert exc.value.status_code == status.HTTP_403_FORBIDDEN
     assert exc.value.detail == 'Not enough permissions'
@@ -135,8 +135,14 @@ async def test_login_user_returns_correct_tokens(
     user: User,
 ) -> None:
     token_pair = await login_user(session, 'user', 'password')
-    access_token_data = get_token_data(token_pair.access_token, AccessToken)
-    refresh_token_data = get_token_data(token_pair.refresh_token, RefreshToken)
+    access_token_data = decode_and_get_token_data(
+        token_pair.access_token,
+        AccessToken,
+    )
+    refresh_token_data = decode_and_get_token_data(
+        token_pair.refresh_token,
+        RefreshToken,
+    )
 
     assert access_token_data.sub == str(user.id)
     assert refresh_token_data.sub == str(user.id)
@@ -152,10 +158,13 @@ async def test_tokens_refresh_success(
         old_token_pair.refresh_token,
     )
 
-    user_from_token = await get_current_user(
+    access_token = await get_authenticated_token(
         SecurityScopes(),
-        session,
         new_token_pair.access_token,
+    )
+    user_from_token = await get_current_user(
+        session,
+        access_token,
     )
     assert user_from_token.id == user.id
 
