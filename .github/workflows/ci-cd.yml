@@ -1,0 +1,51 @@
+on: push
+
+jobs:
+  lint_and_typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: |
+          cd backend
+          uv sync --all-groups
+      - name: Run linters
+        run: |
+          cd backend
+          ruff check
+          ruff format --check
+      - name: Type check
+        run: |
+          cd backend
+          mypy .
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: | 
+          cd backend
+          uv sync --all-groups
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:password@localhost:5432/test_db
+          SECRET_KEY: not_so_secret
+        run: |
+          cd backend
+          pytest
