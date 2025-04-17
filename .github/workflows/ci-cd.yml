@@ -1,10 +1,12 @@
-on: push
+on:
+  push:
+  pull_request:
 
 jobs:
   lint_and_typecheck:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      - name: Check out the repo
         uses: actions/checkout@v4
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -39,7 +41,7 @@ jobs:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - name: Check out code
+      - name: Check out the repo
         uses: actions/checkout@v4
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -58,4 +60,51 @@ jobs:
           SECRET_KEY: not_so_secret
         run: |
           cd backend
-          pytest
+          coverage run -p -m pytest
+      - name: Collect coverage
+        run: |
+          cd backend
+          coverage combine
+          coverage json
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: covdata
+          path: backend/coverage.json
+
+  coverage:
+    name: Coverage
+    if: ${{ github.ref_name == 'main' }}
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+
+      - name: Download coverage data
+        uses: actions/download-artifact@v4
+        with:
+          name: covdata
+
+      - name: Get total coverage
+        run: |
+          export TOTAL=$(python -c "import json;print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
+          echo "total=$TOTAL" >> $GITHUB_ENV
+          echo "### Total coverage: ${TOTAL}%" >> $GITHUB_STEP_SUMMARY
+
+      - name: Make badge
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_TOKEN }}
+          gistID: e4e57a646506bdfb6bd3fc1ae9876d5b
+          filename: covbadge.json
+          label: Coverage
+          message: ${{ env.total }}%
+          minColorRange: 50
+          maxColorRange: 90
+          valColorRange: ${{ env.total }}

@@ -21,6 +21,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "asgi-lifespan==2.*",
+    "coverage>=7.8.0",
     "httpx>=0.28.1",
     "mypy>=1.15.0",
     "psycopg[binary]>=3.2.6",
