@@ -103,6 +103,7 @@ dependencies = [
     { name = "python-multipart" },
     { name = "sqlmodel" },
     { name = "uvicorn" },
+    { name = "uvloop", marker = "sys_platform == 'win32'" },
 ]
 
 [package.dev-dependencies]
@@ -133,6 +134,7 @@ requires-dist = [
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "sqlmodel", specifier = ">=0.0.24" },
     { name = "uvicorn", specifier = ">=0.34.0" },
+    { name = "uvloop", marker = "sys_platform == 'win32'", specifier = ">=0.21.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1266,6 +1268,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/4b/4d/938bd85e5bf2edeec
 wheels = [
     { url = "https://files.pythonhosted.org/packages/61/14/33a3a1352cfa71812a3a21e8c9bfb83f60b0011f5e36f2b1399d51928209/uvicorn-0.34.0-py3-none-any.whl", hash = "sha256:023dc038422502fa28a09c7a30bf2b6991512da7dcdb8fd35fe57cfc154126f4", size = 62315 },
 ]
+
+[[package]]
+name = "uvloop"
+version = "0.21.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/af/c0/854216d09d33c543f12a44b393c402e89a920b1a0a7dc634c42de91b9cf6/uvloop-0.21.0.tar.gz", hash = "sha256:3bf12b0fda68447806a7ad847bfa591613177275d35b6724b1ee573faa3704e3", size = 2492741 }
 
 [[package]]
 name = "webcolors"
