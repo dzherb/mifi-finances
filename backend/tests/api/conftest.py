@@ -88,11 +88,6 @@ async def app(
         yield manager.app
 
 
-@pytest.fixture
-async def openapi(app: FastAPI) -> AsyncGenerator[BaseOpenAPISchema]:
-    yield schemathesis.from_asgi('/openapi.json', app)
-
-
 @pytest.fixture()
 async def user(session: AsyncSession) -> AsyncGenerator[User]:
     yield await create_user(
@@ -149,3 +144,11 @@ async def admin_client(
         headers={'Authorization': f'Bearer {token_pair.access_token}'},
     ) as client:
         yield client
+
+
+@pytest.fixture
+async def openapi_for_schemathesis(
+    app: FastAPI,
+    user: User,
+) -> AsyncGenerator[BaseOpenAPISchema]:
+    yield schemathesis.from_asgi('/openapi.json', app)
