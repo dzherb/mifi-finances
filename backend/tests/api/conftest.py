@@ -71,7 +71,7 @@ async def session(
 
 
 @pytest.fixture
-async def app(
+async def fastapi_app(
     engine: AsyncEngine,
     session_factory: async_sessionmaker[AsyncSession],
 ) -> AsyncGenerator[ASGIApp]:
@@ -83,8 +83,15 @@ async def app(
 
     app = FastAPI(lifespan=lifespan, default_response_class=ORJSONResponse)
     app.include_router(api_router, prefix='/api/v1')
+    yield app
 
-    async with LifespanManager(app) as manager:
+
+@pytest.fixture
+async def app(
+    fastapi_app: FastAPI,
+) -> AsyncGenerator[ASGIApp]:
+    # use LifespanManager to activate db connection
+    async with LifespanManager(fastapi_app) as manager:
         yield manager.app
 
 
