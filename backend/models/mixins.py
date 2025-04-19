@@ -1,25 +1,21 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, func
-from sqlmodel import Field
+from sqlalchemy import DateTime, func
+from sqlmodel import Field, SQLModel
 
 
-class SimpleIdMixin:
+class SimpleIdMixin(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
 
 
-class TimestampMixin:
+class TimestampMixin(SQLModel):
     created_at: datetime | None = Field(
-        sa_column=Column(
-            DateTime(timezone=True),
-            server_default=func.now(),
-            nullable=False,
-        ),
+        sa_type=DateTime(timezone=True),  # type: ignore[call-overload]
+        sa_column_kwargs={'server_default': func.now()},
+        nullable=False,
     )
     updated_at: datetime | None = Field(
-        sa_column=Column(
-            DateTime(timezone=True),
-            onupdate=func.now(),
-            nullable=True,
-        ),
+        sa_type=DateTime(timezone=True),  # type: ignore[call-overload]
+        sa_column_kwargs={'onupdate': func.now()},
+        nullable=True,
     )
