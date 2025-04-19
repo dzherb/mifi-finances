@@ -6,10 +6,9 @@ import alembic_postgresql_enum  # noqa: F401
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from sqlmodel import SQLModel
 
 from core.config import settings
-from models.base import import_all_models
+from models.base import BaseModel, import_all_models
 
 config = context.config
 
@@ -19,7 +18,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 import_all_models()
-target_metadata = SQLModel.metadata
+target_metadata = BaseModel.metadata
 
 
 def run_migrations_offline() -> None:

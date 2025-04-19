@@ -11,11 +11,9 @@ naming_convention = {
 
 metadata = MetaData(naming_convention=naming_convention)
 
-SQLModel.metadata = metadata
-
 
 class BaseModel(SQLModel):
-    pass
+    metadata = metadata
 
 
 def import_all_models() -> None:
