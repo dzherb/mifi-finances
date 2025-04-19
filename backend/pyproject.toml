@@ -40,4 +40,6 @@ plugins = ["pydantic.mypy"]
 explicit_package_bases = true
 strict = true
 check_untyped_defs = true
-exclude = [".*/tests.*"]
+exclude = [
+    '^migrations/versions/*$',
+]
