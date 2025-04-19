@@ -11,7 +11,7 @@ ALGORITHM = 'HS256'
 
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl='/api/v1/auth/login',
+    tokenUrl='/api/v1/auth/openapi_login',
     scopes={
         'admin': 'Administrator privileges',
     },

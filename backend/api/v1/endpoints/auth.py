@@ -13,8 +13,12 @@ from services.auth import login_user, refresh_tokens
 router = APIRouter()
 
 
-@router.post('/login', responses=UNAUTHORIZED)  # type: ignore
-async def login(
+@router.post(
+    path='/openapi_login',
+    responses=UNAUTHORIZED,  # type: ignore
+    include_in_schema=False,
+)
+async def openapi_login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: Session,
 ) -> TokenPair:
@@ -27,9 +31,22 @@ async def login(
         raise RequestValidationError(e.errors()) from e
 
     return await login_user(
+        session=session,
         username=login_data.username,
         password=login_data.password,
+        scopes=form_data.scopes,
+    )
+
+
+@router.post('/login', responses=UNAUTHORIZED)  # type: ignore
+async def login(
+    login_data: LoginRequest,
+    session: Session,
+) -> TokenPair:
+    return await login_user(
         session=session,
+        username=login_data.username,
+        password=login_data.password,
     )
 
 

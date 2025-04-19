@@ -117,16 +117,21 @@ async def login_user(
     session: AsyncSession,
     username: str,
     password: str,
+    scopes: list[str] | None = None,
 ) -> TokenPair:
     user = await authenticate_user(session, username, password)
 
     payload: TokenData = {'sub': str(user.id)}
-    scopes = _get_scopes_for_user(user)
+
+    available_scopes = _get_available_scopes_for_user(user)
+    if scopes is not None:
+        available_scopes = list(set(scopes) & set(available_scopes))
+
     user.last_refresh = datetime.now(timezone.utc)
     session.add(user)
     await session.commit()
     return TokenPair(
-        access_token=create_access_token(payload, scopes=scopes),
+        access_token=create_access_token(payload, scopes=available_scopes),
         refresh_token=create_refresh_token(payload),
     )
 
@@ -137,7 +142,7 @@ async def refresh_tokens(
 ) -> TokenPair:
     user = await get_user_from_refresh_token(session, refresh_token)
     payload: TokenData = {'sub': str(user.id)}
-    scopes = _get_scopes_for_user(user)
+    scopes = _get_available_scopes_for_user(user)
     user.last_refresh = datetime.now(timezone.utc)
     token_pair = TokenPair(
         access_token=create_access_token(payload, scopes=scopes),
@@ -149,7 +154,7 @@ async def refresh_tokens(
     return token_pair
 
 
-def _get_scopes_for_user(user: User) -> list[str]:
+def _get_available_scopes_for_user(user: User) -> list[str]:
     scopes: list[str] = []
     if user.is_admin:
         scopes.append('admin')

@@ -21,7 +21,7 @@ class SchemaAuth:
         client = TestClient(app)
         response = client.post(
             TOKEN_ENDPOINT,
-            data={'username': USERNAME, 'password': PASSWORD},
+            json={'username': USERNAME, 'password': PASSWORD},
         )
         result: dict[str, str] = response.json()
         return result['access_token']

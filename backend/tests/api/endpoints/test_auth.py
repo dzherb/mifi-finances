@@ -2,14 +2,16 @@ from fastapi import status
 from httpx import AsyncClient
 import pytest
 
+LOGIN_TEST_CASES = (
+    ('user', 'password', status.HTTP_200_OK),
+    ('someone_else', 'password', status.HTTP_401_UNAUTHORIZED),
+    ('user', 'wrong_password', status.HTTP_401_UNAUTHORIZED),
+)
+
 
 @pytest.mark.parametrize(
     'login,password,expected_status',
-    (
-        ('user', 'password', status.HTTP_200_OK),
-        ('someone_else', 'password', status.HTTP_401_UNAUTHORIZED),
-        ('user', 'wrong_password', status.HTTP_401_UNAUTHORIZED),
-    ),
+    LOGIN_TEST_CASES,
 )
 @pytest.mark.usefixtures('user')
 async def test_login(
@@ -20,7 +22,25 @@ async def test_login(
 ) -> None:
     response = await client.post(
         url='/api/v1/auth/login',
-        data={'username': login, 'password': password},
+        json={'username': login, 'password': password},
+    )
+    assert response.status_code == expected_status
+
+
+@pytest.mark.parametrize(
+    'login,password,expected_status',
+    LOGIN_TEST_CASES,
+)
+@pytest.mark.usefixtures('user')
+async def test_openapi_login(
+    client: AsyncClient,
+    login: str,
+    password: str,
+    expected_status: int,
+) -> None:
+    response = await client.post(
+        url='/api/v1/auth/openapi_login',
+        data={'username': login, 'password': password, 'scopes': []},
     )
     assert response.status_code == expected_status
 
@@ -29,7 +49,7 @@ async def test_login(
 async def test_tokens_refresh(client: AsyncClient) -> None:
     response = await client.post(
         url='/api/v1/auth/login',
-        data={'username': 'user', 'password': 'password'},
+        json={'username': 'user', 'password': 'password'},
     )
     assert response.status_code == status.HTTP_200_OK
     tokens = response.json()
@@ -66,7 +86,7 @@ async def test_refresh_token_can_only_be_used_once(
 ) -> None:
     login_response = await client.post(
         '/api/v1/auth/login',
-        data={'username': 'user', 'password': 'password'},
+        json={'username': 'user', 'password': 'password'},
     )
     assert login_response.status_code == status.HTTP_200_OK
     refresh_token = login_response.json()['refresh_token']
