@@ -1,6 +1,10 @@
 from fastapi import status
 from httpx import AsyncClient
 import pytest
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from models.user import User
 
 LOGIN_TEST_CASES = (
     ('user', 'password', status.HTTP_200_OK),
@@ -104,3 +108,18 @@ async def test_refresh_token_can_only_be_used_once(
     )
     assert second_refresh.status_code == status.HTTP_401_UNAUTHORIZED
     assert second_refresh.json()['detail'] == 'Token is no longer active'
+
+
+async def test_user_can_register(
+    session: AsyncSession,
+    client: AsyncClient,
+) -> None:
+    assert (await session.exec(select(User))).first() is None
+
+    register_response = await client.post(
+        '/api/v1/auth/register',
+        json={'username': 'new_user', 'password': 'password'},
+    )
+    assert register_response.status_code == status.HTTP_201_CREATED
+    assert 'access_token' in register_response.json()
+    assert await session.exec(select(User)) is not None

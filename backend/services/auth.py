@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import SecurityScopes
 from jwt import ExpiredSignatureError, InvalidTokenError
 from pydantic import ValidationError
-from sqlalchemy.exc import DataError
+from sqlalchemy.exc import DataError, IntegrityError
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -20,6 +20,7 @@ from core.security import (
 from dependencies.db import Session
 from models.user import User
 from schemas.auth import AccessToken, BaseToken, RefreshToken, TokenPair
+from services.users import create_user
 
 CREDENTIALS_EXCEPTION: Final[HTTPException] = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -120,8 +121,35 @@ async def login_user(
     scopes: list[str] | None = None,
 ) -> TokenPair:
     user = await authenticate_user(session, username, password)
+    return await issue_token_pair(session, user, scopes)
 
-    payload: TokenData = {'sub': str(user.id)}
+
+async def register_user(
+    session: AsyncSession,
+    username: str,
+    password: str,
+) -> TokenPair:
+    try:
+        user = await create_user(session, username, password)
+    except IntegrityError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Username is already taken',
+        ) from e
+    except DataError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+        ) from e
+
+    return await issue_token_pair(session, user)
+
+
+async def issue_token_pair(
+    session: AsyncSession,
+    user: User,
+    scopes: list[str] | None = None,
+) -> TokenPair:
+    payload: TokenData = _create_token_base_payload_for_user(user)
 
     available_scopes = _get_available_scopes_for_user(user)
     if scopes is not None:
@@ -152,6 +180,10 @@ async def refresh_tokens(
     await session.commit()
 
     return token_pair
+
+
+def _create_token_base_payload_for_user(user: User) -> TokenData:
+    return {'sub': str(user.id)}
 
 
 def _get_available_scopes_for_user(user: User) -> list[str]:

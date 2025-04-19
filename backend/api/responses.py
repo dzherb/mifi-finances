@@ -25,3 +25,15 @@ FORBIDDEN = {
         },
     },
 }
+
+BAD_REQUEST = {
+    status.HTTP_400_BAD_REQUEST: {
+        'description': 'Bad Request',
+        'model': MessageError,
+        'content': {
+            'application/json': {
+                'example': {'detail': 'Bad Request'},
+            },
+        },
+    },
+}

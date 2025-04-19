@@ -1,14 +1,14 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import ValidationError
 
-from api.responses import UNAUTHORIZED
+from api.responses import BAD_REQUEST, UNAUTHORIZED
 from dependencies.db import Session
-from schemas.auth import LoginRequest, TokenPair, TokenRefresh
-from services.auth import login_user, refresh_tokens
+from schemas.auth import LoginRequest, RegisterRequest, TokenPair, TokenRefresh
+from services.auth import login_user, refresh_tokens, register_user
 
 router = APIRouter()
 
@@ -38,7 +38,7 @@ async def openapi_login(
     )
 
 
-@router.post('/login', responses=UNAUTHORIZED)  # type: ignore
+@router.post('/login', responses=UNAUTHORIZED)  #  type: ignore[arg-type]
 async def login(
     login_data: LoginRequest,
     session: Session,
@@ -51,8 +51,24 @@ async def login(
 
 
 @router.post(
+    '/register',
+    status_code=status.HTTP_201_CREATED,
+    responses=BAD_REQUEST,  #  type: ignore[arg-type]
+)
+async def register(
+    session: Session,
+    register_data: RegisterRequest,
+) -> TokenPair:
+    return await register_user(
+        session=session,
+        username=register_data.username,
+        password=register_data.password,
+    )
+
+
+@router.post(
     path='/refresh',
-    responses=UNAUTHORIZED,  #  type: ignore
+    responses=UNAUTHORIZED,  #  type: ignore[arg-type]
 )
 async def refresh(
     session: Session,
