@@ -1,10 +1,14 @@
 from datetime import datetime
+import typing
 
 from sqlalchemy import Column, DateTime
-from sqlmodel import Field
+from sqlmodel import Field, Relationship
 
 from models.base import BaseModel
 from models.mixins import SimpleIdMixin, TimestampMixin
+
+if typing.TYPE_CHECKING:
+    from models.transaction import Transaction
 
 
 class User(BaseModel, SimpleIdMixin, TimestampMixin, table=True):
@@ -17,3 +21,5 @@ class User(BaseModel, SimpleIdMixin, TimestampMixin, table=True):
         sa_column=Column(DateTime(timezone=True), nullable=True),
     )
     is_admin: bool = False
+
+    transactions: list['Transaction'] = Relationship(back_populates='user')

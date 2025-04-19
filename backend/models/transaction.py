@@ -11,6 +11,7 @@ from models.mixins import SimpleIdMixin, TimestampMixin
 
 if typing.TYPE_CHECKING:
     from models.bank import Bank
+    from models.user import User
 
 
 class PartyType(str, enum.Enum):
@@ -52,6 +53,9 @@ class Transaction(
     table=True,
 ):
     __tablename__ = 'transactions'
+
+    user_id: int = Field(foreign_key='users.id')
+    user: 'User' = Relationship(back_populates='transactions')
 
     party_type: PartyType
     occurred_at: datetime = Field(
