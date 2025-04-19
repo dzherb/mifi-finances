@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
     from models.transaction import Transaction
 
 
-class User(BaseModel, SimpleIdMixin, TimestampMixin, table=True):
+class User(BaseModel, TimestampMixin, SimpleIdMixin, table=True):
     __tablename__ = 'users'
 
     username: str = Field(unique=True)

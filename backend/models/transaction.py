@@ -36,8 +36,8 @@ class TransactionStatus(str, enum.Enum):
 
 class TransactionCategory(
     BaseModel,
-    SimpleIdMixin,
     TimestampMixin,
+    SimpleIdMixin,
     table=True,
 ):
     __tablename__ = 'transaction_categories'
@@ -48,8 +48,8 @@ class TransactionCategory(
 
 class Transaction(
     BaseModel,
-    SimpleIdMixin,
     TimestampMixin,
+    SimpleIdMixin,
     table=True,
 ):
     __tablename__ = 'transactions'

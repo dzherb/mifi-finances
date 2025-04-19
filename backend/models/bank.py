@@ -11,8 +11,8 @@ if typing.TYPE_CHECKING:
 
 class Bank(
     BaseModel,
-    SimpleIdMixin,
     TimestampMixin,
+    SimpleIdMixin,
     table=True,
 ):
     __tablename__ = 'banks'
