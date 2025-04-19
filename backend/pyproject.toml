@@ -44,3 +44,13 @@ check_untyped_defs = true
 exclude = [
     '^migrations/versions/*$',
 ]
+
+[tool.coverage.report]
+exclude_also = [
+    'def __repr__',
+    'raise NotImplementedError',
+    'if __name__ == .__main__.:',
+    'if typing.TYPE_CHECKING:',
+    'class .*\bProtocol\):',
+    '@(abc\.)?abstractmethod',
+]
