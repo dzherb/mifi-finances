@@ -8,7 +8,7 @@ from dependencies.db import Session
 from dependencies.users import AdminUser
 from models.bank import Bank
 from schemas.banks import BankCreate, BankOut, BankOutShort, BankUpdate
-import services.banks as bank_service
+from services.banks import BankCRUD
 
 router = APIRouter()
 
@@ -26,7 +26,7 @@ async def create_bank(
     session: Session,
     bank: BankCreate,
 ) -> Bank:
-    return await bank_service.create_bank(session, bank.name)
+    return await BankCRUD(session).create(Bank.model_validate(bank))
 
 
 @router.patch(
@@ -40,11 +40,12 @@ async def update_bank(
     bank: BankUpdate,
     bank_id: BankID,
 ) -> Bank:
-    bank_from_db = await bank_service.get_bank(session, bank_id)
+    crud = BankCRUD(session)
+    bank_from_db = await crud.get(bank_id)
     updated_bank = bank_from_db.model_copy(
         update=bank.model_dump(exclude_unset=True, exclude_none=True),
     )
-    return await bank_service.update_bank(session, updated_bank)
+    return await crud.update(updated_bank)
 
 
 @router.delete(
@@ -57,7 +58,7 @@ async def delete_bank(
     session: Session,
     bank_id: BankID,
 ) -> None:
-    await bank_service.delete_bank(session, bank_id)
+    await BankCRUD(session).delete(bank_id)
     return
 
 
@@ -67,4 +68,4 @@ async def delete_bank(
     response_model=list[BankOutShort],
 )
 async def all_banks(session: Session) -> Sequence[Bank]:
-    return await bank_service.all_banks(session)
+    return await BankCRUD(session).all()
