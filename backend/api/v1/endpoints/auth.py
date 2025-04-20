@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post(
     path='/openapi_login',
-    responses=UNAUTHORIZED,  # type: ignore
+    responses=UNAUTHORIZED,
     include_in_schema=False,
 )
 async def openapi_login(
@@ -38,7 +38,7 @@ async def openapi_login(
     )
 
 
-@router.post('/login', responses=UNAUTHORIZED)  #  type: ignore[arg-type]
+@router.post('/login', responses=UNAUTHORIZED)
 async def login(
     login_data: LoginRequest,
     session: Session,
@@ -53,7 +53,7 @@ async def login(
 @router.post(
     '/register',
     status_code=status.HTTP_201_CREATED,
-    responses=BAD_REQUEST,  #  type: ignore[arg-type]
+    responses=BAD_REQUEST,
 )
 async def register(
     session: Session,
@@ -68,7 +68,7 @@ async def register(
 
 @router.post(
     path='/refresh',
-    responses=UNAUTHORIZED,  #  type: ignore[arg-type]
+    responses=UNAUTHORIZED,
 )
 async def refresh(
     session: Session,

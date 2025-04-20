@@ -1,39 +1,31 @@
+from typing import Any
+
 from fastapi import status
 
 from schemas.errors import MessageError
 
-UNAUTHORIZED = {
+type _Response = dict[int | str, dict[str, Any]]
+
+UNAUTHORIZED: _Response = {
     status.HTTP_401_UNAUTHORIZED: {
-        'description': 'Unauthorized',
         'model': MessageError,
-        'content': {
-            'application/json': {
-                'example': {'detail': 'Not authenticated'},
-            },
-        },
     },
 }
 
-FORBIDDEN = {
+FORBIDDEN: _Response = {
     status.HTTP_403_FORBIDDEN: {
-        'description': 'Forbidden',
         'model': MessageError,
-        'content': {
-            'application/json': {
-                'example': {'detail': 'Not enough permissions'},
-            },
-        },
     },
 }
 
-BAD_REQUEST = {
+BAD_REQUEST: _Response = {
     status.HTTP_400_BAD_REQUEST: {
-        'description': 'Bad Request',
         'model': MessageError,
-        'content': {
-            'application/json': {
-                'example': {'detail': 'Bad Request'},
-            },
-        },
+    },
+}
+
+NOT_FOUND: _Response = {
+    status.HTTP_404_NOT_FOUND: {
+        'model': MessageError,
     },
 }
