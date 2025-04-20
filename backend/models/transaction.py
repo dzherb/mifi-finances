@@ -2,7 +2,12 @@ from datetime import datetime
 from decimal import Decimal
 import enum
 import typing
+from typing import Annotated
 
+from pydantic_extra_types.phone_numbers import (
+    PhoneNumber,
+    PhoneNumberValidator,
+)
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, Relationship
 
@@ -93,4 +98,7 @@ class Transaction(
     category_id: int = Field(foreign_key='transaction_categories.id')
     category: TransactionCategory = Relationship(back_populates='transactions')
 
-    recipient_phone: str
+    recipient_phone: Annotated[
+        PhoneNumber,
+        PhoneNumberValidator(supported_regions=['RU'], default_region='RU'),
+    ]
