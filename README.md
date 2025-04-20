@@ -21,7 +21,7 @@ erDiagram
     INTEGER id PK
     DATETIME created_at
     DATETIME updated_at "nullable"
-    VARCHAR name
+    VARCHAR name UK
   }
 
   transactions {

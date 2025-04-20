@@ -34,15 +34,18 @@ class TransactionStatus(str, enum.Enum):
     REFUNDED = 'REFUNDED'
 
 
+class TransactionCategoryBase(BaseModel):
+    name: str = Field(unique=True)
+
+
 class TransactionCategory(
-    BaseModel,
+    TransactionCategoryBase,
     TimestampMixin,
     SimpleIdMixin,
     table=True,
 ):
     __tablename__ = 'transaction_categories'
 
-    name: str
     transactions: list['Transaction'] = Relationship(back_populates='category')
 
 
