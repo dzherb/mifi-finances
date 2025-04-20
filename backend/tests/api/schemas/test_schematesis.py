@@ -10,7 +10,7 @@ schemathesis.experimental.OPEN_API_3_1.enable()
 schema = schemathesis.from_pytest_fixture('openapi_for_schemathesis')
 
 TOKEN_ENDPOINT = '/api/v1/auth/login'
-USERNAME = 'user'
+USERNAME = 'admin'
 PASSWORD = 'password'
 
 

@@ -30,7 +30,7 @@ async def ping() -> Ping:
 
 @router.get(
     path='/extra',
-    responses={**UNAUTHORIZED, **FORBIDDEN},  # type: ignore
+    responses=UNAUTHORIZED | FORBIDDEN,
 )
 async def ping_extra(session: Session, user: AdminUser) -> PingExpanded:
     engine = typing.cast(AsyncEngine, session.bind)

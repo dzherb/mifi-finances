@@ -156,6 +156,6 @@ async def admin_client(
 @pytest.fixture
 async def openapi_for_schemathesis(
     app: FastAPI,
-    user: User,
+    admin_user: User,
 ) -> AsyncGenerator[BaseOpenAPISchema]:
     yield schemathesis.from_asgi('/openapi.json', app)
