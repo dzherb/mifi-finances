@@ -1,5 +1,8 @@
+from collections.abc import Sequence
+
 from fastapi import HTTPException, status
 from sqlalchemy.exc import DataError, IntegrityError
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from models.bank import Bank
@@ -24,6 +27,12 @@ async def get_bank(session: AsyncSession, bank_id: int) -> Bank:
         )
 
     return bank
+
+
+async def all_banks(
+    session: AsyncSession,
+) -> Sequence[Bank]:
+    return (await session.exec(select(Bank))).all()
 
 
 async def create_bank(session: AsyncSession, name: str) -> Bank:

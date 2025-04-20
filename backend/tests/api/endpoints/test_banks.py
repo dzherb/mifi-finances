@@ -66,3 +66,20 @@ async def test_delete_bank(
 
     banks = await session.exec(select(Bank).where(Bank.id == bank.id))
     assert banks.one_or_none() is None
+
+
+async def test_all_banks(
+    admin_client: AsyncClient,
+    session: AsyncSession,
+) -> None:
+    bank1 = await create_bank(session, name='Bank1')
+    bank2 = await create_bank(session, name='Bank2')
+
+    response = await admin_client.get('/api/v1/banks')
+    assert response.status_code == status.HTTP_200_OK
+
+    response_data = response.json()
+    assert response_data == [
+        {'id': bank1.id, 'name': 'Bank1'},
+        {'id': bank2.id, 'name': 'Bank2'},
+    ]

@@ -12,5 +12,9 @@ class BankUpdate(BaseModel):
     name: str | None = None
 
 
-class BankOut(BankBase, TimestampMixin, SimpleIdMixin):
+class BankOutShort(BankBase, SimpleIdMixin):
     id: int
+
+
+class BankOut(BankOutShort, TimestampMixin, SimpleIdMixin):
+    pass

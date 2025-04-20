@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Annotated
 
 from fastapi import APIRouter, Path, status
@@ -6,7 +7,7 @@ from api.responses import BAD_REQUEST, FORBIDDEN, NOT_FOUND, UNAUTHORIZED
 from dependencies.db import Session
 from dependencies.users import AdminUser
 from models.bank import Bank
-from schemas.banks import BankCreate, BankOut, BankUpdate
+from schemas.banks import BankCreate, BankOut, BankOutShort, BankUpdate
 import services.banks as bank_service
 
 router = APIRouter()
@@ -58,3 +59,12 @@ async def delete_bank(
 ) -> None:
     await bank_service.delete_bank(session, bank_id)
     return
+
+
+@router.get(
+    path='',
+    responses=UNAUTHORIZED | FORBIDDEN,
+    response_model=list[BankOutShort],
+)
+async def all_banks(session: Session) -> Sequence[Bank]:
+    return await bank_service.all_banks(session)
