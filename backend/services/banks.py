@@ -53,3 +53,14 @@ async def update_bank(session: AsyncSession, bank: Bank) -> Bank:
             status_code=status.HTTP_400_BAD_REQUEST,
         ) from e
     return bank
+
+
+async def delete_bank(session: AsyncSession, bank_id: int) -> None:
+    bank = await get_bank(session, bank_id)
+    try:
+        await session.delete(bank)
+        await session.commit()
+    except DataError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+        ) from e

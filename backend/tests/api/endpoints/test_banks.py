@@ -1,8 +1,10 @@
 from fastapi import status
 from httpx import AsyncClient
 import pytest
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from models.bank import Bank
 from services.banks import create_bank
 
 
@@ -42,7 +44,7 @@ async def test_update_bank(
     bank = await create_bank(session, name='Bank1')
 
     response = await admin_client.patch(
-        f'/api/v1/banks/{bank.id}',
+        url=f'/api/v1/banks/{bank.id}',
         json=request_data,
     )
     assert response.status_code == status.HTTP_200_OK
@@ -51,3 +53,16 @@ async def test_update_bank(
     assert 'id' in response_data
     assert 'created_at' in response_data
     assert 'updated_at' in response_data
+
+
+async def test_delete_bank(
+    admin_client: AsyncClient,
+    session: AsyncSession,
+) -> None:
+    bank = await create_bank(session, name='Bank1')
+
+    response = await admin_client.delete(f'/api/v1/banks/{bank.id}')
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    banks = await session.exec(select(Bank).where(Bank.id == bank.id))
+    assert banks.one_or_none() is None
