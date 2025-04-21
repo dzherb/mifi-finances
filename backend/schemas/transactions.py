@@ -1,6 +1,7 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
-from models.mixins import SimpleIdMixin, TimestampMixin
 from models.transaction import TransactionCategoryBase
 
 
@@ -12,13 +13,12 @@ class TransactionCategoryUpdate(BaseModel):
     name: str | None = None
 
 
-class TransactionCategoryOutShort(TransactionCategoryBase, SimpleIdMixin):
+class TransactionCategoryOutShort(TransactionCategoryBase):
     id: int
 
 
 class TransactionCategoryOut(
     TransactionCategoryOutShort,
-    TimestampMixin,
-    SimpleIdMixin,
 ):
-    pass
+    created_at: datetime
+    updated_at: datetime | None

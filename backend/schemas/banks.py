@@ -1,7 +1,8 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 from models.bank import BankBase
-from models.mixins import SimpleIdMixin, TimestampMixin
 
 
 class BankCreate(BankBase):
@@ -12,9 +13,10 @@ class BankUpdate(BaseModel):
     name: str | None = None
 
 
-class BankOutShort(BankBase, SimpleIdMixin):
+class BankOutShort(BankBase):
     id: int
 
 
-class BankOut(BankOutShort, TimestampMixin, SimpleIdMixin):
-    pass
+class BankOut(BankOutShort):
+    created_at: datetime
+    updated_at: datetime | None
