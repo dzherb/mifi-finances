@@ -49,15 +49,15 @@ def migrated_db(db_url: str, migrated_db_template: str) -> Generator[str]:
 
 
 @pytest.fixture
-def engine(migrated_db: str) -> Generator[AsyncEngine]:
-    yield create_async_engine(migrated_db)
+def engine(migrated_db: str) -> AsyncEngine:
+    return create_async_engine(migrated_db)
 
 
 @pytest.fixture
 def session_factory(
     engine: AsyncEngine,
-) -> Generator[async_sessionmaker[AsyncSession]]:
-    yield create_async_session_factory(
+) -> async_sessionmaker[AsyncSession]:
+    return create_async_session_factory(
         engine,
     )
 
@@ -74,7 +74,7 @@ async def session(
 async def fastapi_app(
     engine: AsyncEngine,
     session_factory: async_sessionmaker[AsyncSession],
-) -> AsyncGenerator[ASGIApp]:
+) -> ASGIApp:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         app.state.engine = engine
@@ -83,7 +83,7 @@ async def fastapi_app(
 
     app = FastAPI(lifespan=lifespan, default_response_class=ORJSONResponse)
     app.include_router(api_router, prefix='/api/v1')
-    yield app
+    return app
 
 
 @pytest.fixture
@@ -95,18 +95,18 @@ async def app(
         yield manager.app
 
 
-@pytest.fixture()
-async def user(session: AsyncSession) -> AsyncGenerator[User]:
-    yield await create_user(
+@pytest.fixture
+async def user(session: AsyncSession) -> User:
+    return await create_user(
         session,
         username='user',
         password='password',
     )
 
 
-@pytest.fixture()
-async def admin_user(session: AsyncSession) -> AsyncGenerator[User]:
-    yield await create_user(
+@pytest.fixture
+async def admin_user(session: AsyncSession) -> User:
+    return await create_user(
         session,
         username='admin',
         password='password',
@@ -157,5 +157,5 @@ async def admin_client(
 async def openapi_for_schemathesis(
     app: FastAPI,
     admin_user: User,
-) -> AsyncGenerator[BaseOpenAPISchema]:
-    yield schemathesis.from_asgi('/openapi.json', app)
+) -> BaseOpenAPISchema:
+    return schemathesis.from_asgi('/openapi.json', app)

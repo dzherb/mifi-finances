@@ -14,7 +14,7 @@ LOGIN_TEST_CASES = (
 
 
 @pytest.mark.parametrize(
-    'login,password,expected_status',
+    ('login', 'password', 'expected_status'),
     LOGIN_TEST_CASES,
 )
 @pytest.mark.usefixtures('user')
@@ -32,7 +32,7 @@ async def test_login(
 
 
 @pytest.mark.parametrize(
-    'login,password,expected_status',
+    ('login', 'password', 'expected_status'),
     LOGIN_TEST_CASES,
 )
 @pytest.mark.usefixtures('user')

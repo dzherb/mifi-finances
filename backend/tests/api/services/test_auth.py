@@ -149,14 +149,14 @@ async def test_login_user_returns_correct_tokens(
 
 
 @pytest.mark.parametrize(
-    'scopes,expected_scopes',
-    (
+    ('scopes', 'expected_scopes'),
+    [
         (None, ['admin']),
         ([], []),
         (['something', 'else'], []),
         (['admin'], ['admin']),
         (['admin', 'something', 'else'], ['admin']),
-    ),
+    ],
 )
 async def test_can_limit_scopes_on_login(
     session: AsyncSession,

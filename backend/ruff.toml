@@ -6,6 +6,18 @@ target-version = "py313"
 
 [lint]
 select = [
+    "FAST", # FastAPI
+    "PT",   # flake8-pytest-style
+    "A",    # flake8-builtins
+    "ASYNC",# flake8-async
+    "B",    # flake8-bugbear
+    "LOG",  # flake8-logging
+    "G",    # flake8-logging-format
+    "RUF",  # Ruff-specific rules
+    "PL",   # Pylint
+    "C90",  # mccabe
+    "SIM",  # flake8-simplify
+    "RET",  # flake8-return
     "F",    # Pyflakes
     "E",    # pcodestyle
     "I",    # isort

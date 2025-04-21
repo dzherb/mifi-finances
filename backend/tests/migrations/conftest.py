@@ -13,5 +13,5 @@ def db(db_url: str) -> Generator[str]:
 
 
 @pytest.fixture
-def alembic_config(db: str) -> Generator[Config]:
-    yield get_alembic_config(db)
+def alembic_config(db: str) -> Config:
+    return get_alembic_config(db)

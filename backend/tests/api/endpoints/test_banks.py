@@ -29,11 +29,11 @@ async def test_cant_create_bank_with_the_same_name(
 
 
 @pytest.mark.parametrize(
-    'request_data,response_name',
-    (
+    ('request_data', 'response_name'),
+    [
         ({'name': 'BankNew'}, 'BankNew'),
         ({'name': None}, 'Bank1'),
-    ),
+    ],
 )
 async def test_update_bank(
     admin_client: AsyncClient,

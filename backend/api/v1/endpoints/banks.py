@@ -59,7 +59,6 @@ async def delete_bank(
     bank_id: BankID,
 ) -> None:
     await BankCRUD(session).delete(bank_id)
-    return
 
 
 @router.get(
