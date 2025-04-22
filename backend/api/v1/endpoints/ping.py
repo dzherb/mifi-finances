@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from api.responses import FORBIDDEN, UNAUTHORIZED
+from core.logging import logger
 from dependencies.db import Session
 from dependencies.users import AdminUser
 
@@ -25,6 +26,7 @@ class PingExpanded(Ping):
 
 @router.get('')
 async def ping() -> Ping:
+    logger.info('ping')
     return Ping()
 
 
