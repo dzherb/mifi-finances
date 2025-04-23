@@ -7,10 +7,10 @@ from pydantic import AfterValidator
 # 8-9 пункты
 def validate_inn(value: str) -> None:
     if not value.isdigit():
-        raise ValueError('ИНН должен содержать только цифры')
+        raise ValueError('INN must contain only digits')
 
     if len(value) not in (10, 12):
-        raise ValueError('ИНН должен содержать 10 или 12 цифр')
+        raise ValueError('INN must contain 10 or 12 digits')
 
     digits = [int(c) for c in value]
 
@@ -29,7 +29,7 @@ def validate_inn(value: str) -> None:
         checksum_12 = (control_sum_12 % 11) % 10
 
         if digits[-2] != checksum_11 or digits[-1] != checksum_12:
-            raise ValueError('Неверный ИНН')
+            raise ValueError('Incorrect INN')
 
     # Огранизация, пункт 9
     if len(digits) == 10:
@@ -39,7 +39,7 @@ def validate_inn(value: str) -> None:
         )
         checksum = (control_sum % 11) % 10
         if digits[-1] != checksum:
-            raise ValueError('Неверный ИНН')
+            raise ValueError('Incorrect INN')
 
 
 INN = Annotated[str, AfterValidator(validate_inn)]
