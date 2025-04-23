@@ -47,11 +47,11 @@ INVALID_INNS = [
 
 
 @pytest.mark.parametrize('inn', VALID_INNS)
-def test_valid_inns(inn):
+def test_valid_inns(inn: str) -> None:
     validate_inn(inn)
 
 
 @pytest.mark.parametrize('inn', INVALID_INNS)
-def test_invalid_inns(inn):
+def test_invalid_inns(inn: str) -> None:
     with pytest.raises(ValueError):
         validate_inn(inn)
