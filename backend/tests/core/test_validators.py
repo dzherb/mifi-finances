@@ -1,3 +1,4 @@
+# ruff: noqa: RUF001, PT011
 import pytest
 
 from core.validators import validate_inn
@@ -48,7 +49,7 @@ INVALID_INNS = [
 
 @pytest.mark.parametrize('inn', VALID_INNS)
 def test_valid_inns(inn: str) -> None:
-    validate_inn(inn)
+    assert validate_inn(inn) == inn
 
 
 @pytest.mark.parametrize('inn', INVALID_INNS)
