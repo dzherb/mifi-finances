@@ -1,20 +1,20 @@
 import sys
 from typing import Literal, TypeAlias
 
-import loguru
+import loguru  # type: ignore
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = loguru.logger
 
-LogLevel: TypeAlias = (
-    Literal['TRACE']
-    | Literal['DEBUG']
-    | Literal['INFO']
-    | Literal['SUCCESS']
-    | Literal['WARNING']
-    | Literal['ERROR']
-    | Literal['CRITICAL']
-)
+LogLevel: TypeAlias = Literal[
+    'TRACE',
+    'DEBUG',
+    'INFO',
+    'SUCCESS',
+    'WARNING',
+    'ERROR',
+    'CRITICAL',
+]
 
 
 class LogSettings(BaseSettings):
@@ -34,7 +34,7 @@ class LogSettings(BaseSettings):
 log_settings = LogSettings()
 
 
-def configure_logging():
+def configure_logging() -> None:
     logger.remove()
 
     logger.add(
