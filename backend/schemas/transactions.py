@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from models.transaction import TransactionCategoryBase
+from models.transaction import TransactionBase, TransactionCategoryBase
 
 
 class TransactionCategoryCreate(TransactionCategoryBase):
@@ -20,5 +20,22 @@ class TransactionCategoryOutShort(TransactionCategoryBase):
 class TransactionCategoryOut(
     TransactionCategoryOutShort,
 ):
+    created_at: datetime
+    updated_at: datetime | None
+
+
+class TransactionCreate(TransactionBase):
+    pass
+
+
+class TransactionUpdate(TransactionCreate):
+    pass
+
+
+class TransactionOutShort(TransactionBase):
+    id: int
+
+
+class TransactionOut(TransactionOutShort):
     created_at: datetime
     updated_at: datetime | None

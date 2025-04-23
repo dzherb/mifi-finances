@@ -1,23 +1,41 @@
 from collections.abc import Sequence
-from typing import Annotated
 
-from fastapi import APIRouter, Path, status
+from fastapi import APIRouter, status
 
+from api.params import EntityID
 from api.responses import BAD_REQUEST, FORBIDDEN, NOT_FOUND, UNAUTHORIZED
 from dependencies.db import Session
-from dependencies.users import AdminUser
-from models.transaction import TransactionCategory
+from dependencies.users import AdminUser, CurrentUser
+from models.transaction import Transaction, TransactionCategory
 from schemas.transactions import (
     TransactionCategoryCreate,
     TransactionCategoryOut,
     TransactionCategoryOutShort,
     TransactionCategoryUpdate,
+    TransactionCreate,
+    TransactionOut,
 )
-from services.transactions import TransactionCategoryCRUD
+from services.transactions import TransactionCategoryCRUD, TransactionCRUD
 
 router = APIRouter()
 
-CategoryID = Annotated[int, Path(..., gt=0)]
+
+@router.post(
+    path='',
+    responses=UNAUTHORIZED | BAD_REQUEST,
+    status_code=status.HTTP_201_CREATED,
+    response_model=TransactionOut,
+)
+async def create_transaction(
+    user: CurrentUser,
+    session: Session,
+    transaction: TransactionCreate,
+) -> Transaction:
+    new_transaction = Transaction.model_validate(
+        transaction,
+        update={'user_id': user.id},
+    )
+    return await TransactionCRUD(session).create(new_transaction)
 
 
 @router.post(
@@ -45,7 +63,7 @@ async def update_category(
     _: AdminUser,
     session: Session,
     category: TransactionCategoryUpdate,
-    category_id: CategoryID,
+    category_id: EntityID,
 ) -> TransactionCategory:
     crud = TransactionCategoryCRUD(session)
     category_from_db = await crud.get(category_id)
@@ -63,7 +81,7 @@ async def update_category(
 async def delete_category(
     _: AdminUser,
     session: Session,
-    category_id: CategoryID,
+    category_id: EntityID,
 ) -> None:
     await TransactionCategoryCRUD(session).delete(category_id)
 

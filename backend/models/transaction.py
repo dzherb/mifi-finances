@@ -11,6 +11,7 @@ from pydantic_extra_types.phone_numbers import (
 from sqlalchemy import Column, DateTime
 from sqlmodel import Field, Relationship
 
+from core.validators import INN
 from models.base import BaseModel
 from models.mixins import SimpleIdMixin, TimestampMixin
 
@@ -54,17 +55,7 @@ class TransactionCategory(
     transactions: list['Transaction'] = Relationship(back_populates='category')
 
 
-class Transaction(
-    BaseModel,
-    TimestampMixin,
-    SimpleIdMixin,
-    table=True,
-):
-    __tablename__ = 'transactions'
-
-    user_id: int = Field(foreign_key='users.id')
-    user: 'User' = Relationship(back_populates='transactions')
-
+class TransactionBase(BaseModel):
     party_type: PartyType
     occurred_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True), nullable=False),
@@ -76,29 +67,39 @@ class Transaction(
         decimal_places=5,
     )
     status: TransactionStatus = Field(default=TransactionStatus.NEW)
-
     sender_bank_id: int = Field(foreign_key='banks.id')
+    account_number: str
+    recipient_bank_id: int = Field(foreign_key='banks.id')
+    recipient_inn: INN
+    recipient_account_number: str
+    category_id: int = Field(foreign_key='transaction_categories.id')
+    recipient_phone: Annotated[
+        PhoneNumber,
+        PhoneNumberValidator(supported_regions=['RU'], default_region='RU'),
+    ]
+
+
+class Transaction(
+    TransactionBase,
+    TimestampMixin,
+    SimpleIdMixin,
+    table=True,
+):
+    __tablename__ = 'transactions'
+
+    user_id: int = Field(foreign_key='users.id')
+    user: 'User' = Relationship(back_populates='transactions')
+
     sender_bank: 'Bank' = Relationship(
         back_populates='sent_transactions',
         sa_relationship_kwargs={'foreign_keys': 'Transaction.sender_bank_id'},
     )
 
-    account_number: str
-
-    recipient_bank_id: int = Field(foreign_key='banks.id')
     recipient_bank: 'Bank' = Relationship(
         back_populates='received_transactions',
         sa_relationship_kwargs={
             'foreign_keys': 'Transaction.recipient_bank_id',
         },
     )
-    recipient_inn: str
-    recipient_account_number: str
 
-    category_id: int = Field(foreign_key='transaction_categories.id')
     category: TransactionCategory = Relationship(back_populates='transactions')
-
-    recipient_phone: Annotated[
-        PhoneNumber,
-        PhoneNumberValidator(supported_regions=['RU'], default_region='RU'),
-    ]

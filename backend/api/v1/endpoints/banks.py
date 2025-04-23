@@ -1,8 +1,8 @@
 from collections.abc import Sequence
-from typing import Annotated
 
-from fastapi import APIRouter, Path, status
+from fastapi import APIRouter, status
 
+from api.params import EntityID
 from api.responses import BAD_REQUEST, FORBIDDEN, NOT_FOUND, UNAUTHORIZED
 from dependencies.db import Session
 from dependencies.users import AdminUser
@@ -11,8 +11,6 @@ from schemas.banks import BankCreate, BankOut, BankOutShort, BankUpdate
 from services.banks import BankCRUD
 
 router = APIRouter()
-
-BankID = Annotated[int, Path(..., gt=0)]
 
 
 @router.post(
@@ -38,7 +36,7 @@ async def update_bank(
     _: AdminUser,
     session: Session,
     bank: BankUpdate,
-    bank_id: BankID,
+    bank_id: EntityID,
 ) -> Bank:
     crud = BankCRUD(session)
     bank_from_db = await crud.get(bank_id)
@@ -56,7 +54,7 @@ async def update_bank(
 async def delete_bank(
     _: AdminUser,
     session: Session,
-    bank_id: BankID,
+    bank_id: EntityID,
 ) -> None:
     await BankCRUD(session).delete(bank_id)
 
