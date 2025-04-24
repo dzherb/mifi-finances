@@ -41,7 +41,7 @@ async def update_bank(
     crud = BankCRUD(session)
     bank_from_db = await crud.get(bank_id)
     updated_bank = bank_from_db.model_copy(
-        update=bank.model_dump(exclude_unset=True, exclude_none=True),
+        update=bank.model_dump(exclude_unset=True, exclude_defaults=True),
     )
     return await crud.update(updated_bank)
 

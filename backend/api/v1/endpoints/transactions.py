@@ -68,7 +68,7 @@ async def update_category(
     crud = TransactionCategoryCRUD(session)
     category_from_db = await crud.get(category_id)
     updated_category = category_from_db.model_copy(
-        update=category.model_dump(exclude_unset=True, exclude_none=True),
+        update=category.model_dump(exclude_unset=True, exclude_defaults=True),
     )
     return await crud.update(updated_category)
 
