@@ -1,6 +1,8 @@
 from typing import Annotated
 
+import phonenumbers
 from pydantic import AfterValidator
+from pydantic_extra_types.phone_numbers import PhoneNumberValidator
 
 
 # https://info.gosuslugi.ru/articles/%D0%92%D0%B0%D0%BB%D0%B8%D0%B4%D0%B0%D1%86%D0%B8%D1%8F/
@@ -45,3 +47,8 @@ def validate_inn(value: str) -> str:
 
 
 INN = Annotated[str, AfterValidator(validate_inn)]
+
+PhoneNumber = Annotated[
+    phonenumbers.PhoneNumber,
+    PhoneNumberValidator(supported_regions=['RU'], default_region='RU'),
+]

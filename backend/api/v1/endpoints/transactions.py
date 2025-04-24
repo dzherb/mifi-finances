@@ -14,8 +14,12 @@ from schemas.transactions import (
     TransactionCategoryUpdate,
     TransactionCreate,
     TransactionOut,
+    TransactionUpdate,
 )
-from services.transactions import TransactionCategoryCRUD, TransactionCRUD
+from services.transactions import (
+    TransactionCategoryCRUD,
+    TransactionService,
+)
 
 router = APIRouter()
 
@@ -31,11 +35,25 @@ async def create_transaction(
     session: Session,
     transaction: TransactionCreate,
 ) -> Transaction:
-    new_transaction = Transaction.model_validate(
+    return await TransactionService(session, user).create_transaction(
         transaction,
-        update={'user_id': user.id},
     )
-    return await TransactionCRUD(session).create(new_transaction)
+
+
+@router.patch(
+    path='',
+    responses=UNAUTHORIZED | FORBIDDEN | BAD_REQUEST | NOT_FOUND,
+    status_code=status.HTTP_201_CREATED,
+    response_model=TransactionOut,
+)
+async def update_transaction(
+    user: CurrentUser,
+    session: Session,
+    transaction: TransactionUpdate,
+) -> Transaction:
+    return await TransactionService(session, user).update_transaction(
+        transaction,
+    )
 
 
 @router.post(

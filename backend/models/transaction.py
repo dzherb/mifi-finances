@@ -2,16 +2,11 @@ from datetime import datetime
 from decimal import Decimal
 import enum
 import typing
-from typing import Annotated
 
-from pydantic_extra_types.phone_numbers import (
-    PhoneNumber,
-    PhoneNumberValidator,
-)
-from sqlalchemy import Column, DateTime
+from sqlalchemy import DateTime, VARCHAR
 from sqlmodel import Field, Relationship
 
-from core.validators import INN
+from core.validators import INN, PhoneNumber
 from models.base import BaseModel
 from models.mixins import SimpleIdMixin, TimestampMixin
 
@@ -58,7 +53,8 @@ class TransactionCategory(
 class TransactionBase(BaseModel):
     party_type: PartyType
     occurred_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), nullable=False),
+        sa_type=DateTime(timezone=True),  # type: ignore[call-overload]
+        nullable=False,
     )
     transaction_type: TransactionType
     comment: str = Field(default='')
@@ -73,10 +69,7 @@ class TransactionBase(BaseModel):
     recipient_inn: INN
     recipient_account_number: str
     category_id: int = Field(foreign_key='transaction_categories.id')
-    recipient_phone: Annotated[
-        PhoneNumber,
-        PhoneNumberValidator(supported_regions=['RU'], default_region='RU'),
-    ]
+    recipient_phone: PhoneNumber = Field(sa_type=VARCHAR)
 
 
 class Transaction(

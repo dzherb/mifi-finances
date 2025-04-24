@@ -1,6 +1,5 @@
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager
-from typing import Generator
 from urllib.parse import urlparse
 
 from alembic import command
@@ -54,12 +53,13 @@ def engine(migrated_db: str) -> AsyncEngine:
 
 
 @pytest.fixture
-def session_factory(
+async def session_factory(
     engine: AsyncEngine,
-) -> async_sessionmaker[AsyncSession]:
-    return create_async_session_factory(
+) -> AsyncGenerator[async_sessionmaker[AsyncSession]]:
+    yield create_async_session_factory(
         engine,
     )
+    await engine.dispose()
 
 
 @pytest.fixture
