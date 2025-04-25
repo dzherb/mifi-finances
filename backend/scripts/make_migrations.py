@@ -1,9 +1,6 @@
-"""Migrates db to the latest alembic revision
-and injects the current schema to the README.md"""
-
 from pathlib import Path
 
-from alembic.command import upgrade
+from alembic.command import revision
 from alembic.config import Config
 import paracelsus.cli  # type: ignore
 from paracelsus.cli import ColumnSorts, Formats, get_graph_string, inject
@@ -39,9 +36,16 @@ def _clean_sqlalchemy_types(mmd_graph: str) -> str:
     return mmd_graph.replace(', ', '_')
 
 
-if __name__ == '__main__':
-    upgrade(
+def make_migrations() -> None:
+    """Creates a new Alembic migration revision
+    and updates the schema diagram in README.md."""
+    revision(
         config=Config(Path(__file__).parent.parent / 'alembic.ini'),
-        revision='head',
+        message=input('Revision message: '),
+        autogenerate=True,
     )
     inject_mermaid_schema_to_readme()
+
+
+if __name__ == '__main__':
+    make_migrations()
