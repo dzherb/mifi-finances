@@ -40,10 +40,10 @@ async def update_bank(
 ) -> Bank:
     crud = BankCRUD(session)
     bank_from_db = await crud.get(bank_id)
-    updated_bank = bank_from_db.model_copy(
-        update=bank.model_dump(exclude_unset=True, exclude_defaults=True),
+    bank_from_db.sqlmodel_update(
+        bank.model_dump(exclude_unset=True, exclude_defaults=True),
     )
-    return await crud.update(updated_bank)
+    return await crud.update(bank_from_db)
 
 
 @router.delete(
