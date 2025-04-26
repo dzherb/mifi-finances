@@ -38,7 +38,6 @@ class TransactionCreate(TransactionBase):
 
 
 class TransactionUpdate(BaseModel):
-    id: int
     party_type: PartyType | None = None
     occurred_at: datetime | None = None
     transaction_type: TransactionType | None = None

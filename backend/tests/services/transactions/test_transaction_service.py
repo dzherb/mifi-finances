@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import typing
 
 from fastapi import HTTPException
 import pytest
@@ -60,8 +61,9 @@ async def test_update_transaction_success(
 ) -> None:
     service = TransactionService(session, user)
 
-    update_data = TransactionUpdate(id=transaction.id, comment='Updated')
-    updated = await service.update_transaction(update_data)
+    update_data = TransactionUpdate(comment='Updated')
+    transaction_id = typing.cast(int, transaction.id)
+    updated = await service.update_transaction(transaction_id, update_data)
 
     assert updated.comment == 'Updated'
 
@@ -77,10 +79,11 @@ async def test_update_transaction_forbidden_field(
     session.add(transaction)
     await session.commit()
 
-    update_data = TransactionUpdate(id=transaction.id, comment='Fail')
+    update_data = TransactionUpdate(comment='Fail')
 
+    transaction_id = typing.cast(int, transaction.id)
     with pytest.raises(HTTPException) as exc_info:
-        await service.update_transaction(update_data)
+        await service.update_transaction(transaction_id, update_data)
 
     assert 'cannot be edited' in str(exc_info.value)
 

@@ -3,7 +3,9 @@ from httpx import AsyncClient
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from models.transaction import TransactionCategory
+from models.transaction import (
+    TransactionCategory,
+)
 
 
 async def test_create_category(
