@@ -19,7 +19,7 @@ def test_editable_transaction_with_allowed_fields(
 
 @pytest.mark.parametrize(
     'transaction_status',
-    list(TransactionGuard.EDIT_FORBIDDEN_STATUSES),
+    sorted(TransactionGuard.EDIT_FORBIDDEN_STATUSES),
 )
 def test_editable_transaction_with_forbidden_status(
     transaction_status: TransactionStatus,
@@ -71,7 +71,7 @@ def test_editable_transaction_by_admin(
 
 @pytest.mark.parametrize(
     'transaction_status',
-    list(TransactionGuard.DELETE_FORBIDDEN_STATUSES),
+    sorted(TransactionGuard.DELETE_FORBIDDEN_STATUSES),
 )
 def test_deletable_transaction_with_forbidden_status(
     transaction_status: TransactionStatus,
@@ -107,3 +107,8 @@ def test_deletable_transaction_by_admin(
 
     guard = TransactionGuard(transaction, admin_user)
     guard.ensure_deletable()
+
+
+def test_transaction_includes_allowed_update_fields() -> None:
+    for field in TransactionGuard.ALLOWED_UPDATE_FIELDS:
+        assert hasattr(Transaction, field)

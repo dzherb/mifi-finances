@@ -101,14 +101,14 @@ class TransactionGuard:
 
     ALLOWED_UPDATE_FIELDS: typing.ClassVar[Set[str]] = {
         'party_type',
-        'date',
+        'occurred_at',
         'comment',
         'amount',
         'status',
         'sender_bank_id',
-        'receiver_bank_id',
-        'inn',
-        'categories',
+        'recipient_bank_id',
+        'recipient_inn',
+        'category_id',
         'recipient_phone',
     }
 
@@ -171,24 +171,21 @@ class TransactionService:
 
     async def update_transaction(
         self,
-        transaction: TransactionUpdate,
+        transaction_id: int,
+        updated_transaction: TransactionUpdate,
     ) -> Transaction:
-        assert transaction.id is not None
-        current_transaction = await self.crud.get(transaction.id)
+        current_transaction = await self.crud.get(transaction_id)
 
-        update_data = transaction.model_dump(
+        update_data = updated_transaction.model_dump(
             exclude_unset=True,
             exclude_defaults=True,
-            exclude={'id'},
         )
         TransactionGuard(current_transaction, self.user).ensure_editable(
             update_data,
         )
 
-        modified_transaction = current_transaction.model_copy(
-            update=update_data,
-        )
-        return await self.crud.update(modified_transaction)
+        current_transaction.sqlmodel_update(update_data)
+        return await self.crud.update(current_transaction)
 
     async def delete_transaction(self, transaction_id: int) -> None:
         transaction = await self.crud.get(transaction_id)

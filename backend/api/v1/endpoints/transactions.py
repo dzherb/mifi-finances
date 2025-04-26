@@ -41,17 +41,18 @@ async def create_transaction(
 
 
 @router.patch(
-    path='',
+    path='/{transaction_id}',
     responses=UNAUTHORIZED | FORBIDDEN | BAD_REQUEST | NOT_FOUND,
-    status_code=status.HTTP_201_CREATED,
     response_model=TransactionOut,
 )
 async def update_transaction(
     user: CurrentUser,
     session: Session,
+    transaction_id: EntityID,
     transaction: TransactionUpdate,
 ) -> Transaction:
     return await TransactionService(session, user).update_transaction(
+        transaction_id,
         transaction,
     )
 
@@ -85,10 +86,10 @@ async def update_category(
 ) -> TransactionCategory:
     crud = TransactionCategoryCRUD(session)
     category_from_db = await crud.get(category_id)
-    updated_category = category_from_db.model_copy(
-        update=category.model_dump(exclude_unset=True, exclude_defaults=True),
+    category_from_db.sqlmodel_update(
+        category.model_dump(exclude_unset=True, exclude_defaults=True),
     )
-    return await crud.update(updated_category)
+    return await crud.update(category_from_db)
 
 
 @router.delete(
