@@ -15,7 +15,6 @@ async def timestamp_instance(session: AsyncSession) -> TimestampMixin:
     return instance
 
 
-@pytest.mark.xfail(reason='updated_at is currently not working properly')
 async def test_updated_at_field(
     session: AsyncSession,
     timestamp_instance: TimestampMixin,
@@ -31,7 +30,7 @@ async def test_updated_at_field(
     assert timestamp_instance.updated_at is not None
     last_updated_at = timestamp_instance.updated_at
 
-    # # update again
+    # update again
     timestamp_instance.created_at = datetime.now(timezone.utc)
     session.add(timestamp_instance)
     await session.commit()

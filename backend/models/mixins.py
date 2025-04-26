@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import DateTime, func
 from sqlmodel import Field, SQLModel
@@ -16,7 +16,10 @@ class TimestampMixin(SQLModel):
         nullable=False,
     )
     updated_at: datetime | None = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default=None,
         sa_type=DateTime(timezone=True),  # type: ignore[call-overload]
+        sa_column_kwargs={'onupdate': func.now()},
         nullable=True,
     )
+
+    __mapper_args__ = {'eager_defaults': True}
