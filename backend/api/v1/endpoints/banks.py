@@ -5,7 +5,7 @@ from fastapi import APIRouter, status
 from api.params import EntityID
 from api.responses import BAD_REQUEST, FORBIDDEN, NOT_FOUND, UNAUTHORIZED
 from dependencies.db import Session
-from dependencies.users import AdminUser
+from dependencies.users import admin_token_dependency
 from models.bank import Bank
 from schemas.banks import BankCreate, BankOut, BankOutShort, BankUpdate
 from services.banks import BankCRUD
@@ -18,9 +18,9 @@ router = APIRouter()
     responses=UNAUTHORIZED | FORBIDDEN | BAD_REQUEST,
     status_code=status.HTTP_201_CREATED,
     response_model=BankOut,
+    dependencies=(admin_token_dependency,),
 )
 async def create_bank(
-    _: AdminUser,
     session: Session,
     bank: BankCreate,
 ) -> Bank:
@@ -31,9 +31,9 @@ async def create_bank(
     path='/{bank_id}',
     responses=UNAUTHORIZED | FORBIDDEN | BAD_REQUEST | NOT_FOUND,
     response_model=BankOut,
+    dependencies=(admin_token_dependency,),
 )
 async def update_bank(
-    _: AdminUser,
     session: Session,
     bank: BankUpdate,
     bank_id: EntityID,
@@ -50,9 +50,9 @@ async def update_bank(
     path='/{bank_id}',
     responses=UNAUTHORIZED | FORBIDDEN | BAD_REQUEST | NOT_FOUND,
     status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=(admin_token_dependency,),
 )
 async def delete_bank(
-    _: AdminUser,
     session: Session,
     bank_id: EntityID,
 ) -> None:
