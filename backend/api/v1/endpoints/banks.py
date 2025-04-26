@@ -65,4 +65,4 @@ async def delete_bank(
     response_model=list[BankOutShort],
 )
 async def all_banks(session: Session) -> Sequence[Bank]:
-    return await BankCRUD(session).all()
+    return await BankCRUD(session).list()

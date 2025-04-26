@@ -38,7 +38,7 @@ async def test_get_not_found(crud: BaseCRUD[Bank]) -> None:
 
 
 async def test_all(crud: BaseCRUD[Bank], bank: BankOut) -> None:
-    results = await crud.all()
+    results = await crud.list()
     assert any(b.id == bank.id for b in results)
 
 

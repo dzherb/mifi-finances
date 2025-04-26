@@ -1,10 +1,13 @@
 from collections.abc import Sequence
+from typing import Annotated
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
+from fastapi.params import Depends
 
 from api.params import EntityID
 from api.responses import BAD_REQUEST, FORBIDDEN, NOT_FOUND, UNAUTHORIZED
 from dependencies.db import Session
+from dependencies.params import order_by_dependency
 from dependencies.users import AdminUser, CurrentUser
 from models.transaction import Transaction, TransactionCategory
 from schemas.transactions import (
@@ -16,12 +19,40 @@ from schemas.transactions import (
     TransactionOut,
     TransactionUpdate,
 )
+from services.crud import OrderByItem
 from services.transactions import (
     TransactionCategoryCRUD,
     TransactionService,
 )
 
 router = APIRouter()
+
+
+_OrderBy = Depends(
+    order_by_dependency(
+        fields=('occurred_at', 'created_at', 'updated_at'),
+        default=('-occurred_at',),
+    ),
+)
+
+
+@router.get(
+    path='',
+    responses=UNAUTHORIZED | BAD_REQUEST,
+    response_model=list[TransactionOut],
+)
+async def my_transactions(
+    user: CurrentUser,
+    session: Session,
+    order_by: Annotated[list[OrderByItem], _OrderBy],
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(gt=0, lt=100)] = 10,
+) -> Sequence[Transaction]:
+    return await TransactionService(session, user).user_transactions(
+        order_by=order_by,
+        offset=offset,
+        limit=limit,
+    )
 
 
 @router.post(
@@ -111,4 +142,4 @@ async def delete_category(
     response_model=list[TransactionCategoryOutShort],
 )
 async def all_categories(session: Session) -> Sequence[TransactionCategory]:
-    return await TransactionCategoryCRUD(session).all()
+    return await TransactionCategoryCRUD(session).list()

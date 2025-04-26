@@ -1,5 +1,6 @@
-from collections.abc import Mapping, Set
+from collections.abc import Mapping, Sequence, Set
 import typing
+from typing import override
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
@@ -12,7 +13,7 @@ from models.transaction import (
 )
 from models.user import User
 from schemas.transactions import TransactionCreate, TransactionUpdate
-from services.crud import BaseCRUD
+from services.crud import BaseCRUD, OrderByItem
 
 CATEGORY_NAME_NOT_UNIQUE_EXCEPTION = HTTPException(
     status_code=status.HTTP_400_BAD_REQUEST,
@@ -49,12 +50,14 @@ class TransactionCRUD(BaseCRUD[Transaction]):
         super().__init__(session)
         self.model = Transaction
 
+    @override
     async def create(self, instance: Transaction) -> Transaction:
         try:
             return await super().create(instance)
         except IntegrityError as e:
             self._handle_integrity_error(e)
 
+    @override
     async def update(self, instance: Transaction) -> Transaction:
         try:
             return await super().update(instance)
@@ -194,3 +197,16 @@ class TransactionService:
 
         transaction.status = TransactionStatus.DELETED
         await self.crud.update(transaction)
+
+    async def user_transactions(
+        self,
+        order_by: Sequence[OrderByItem] | None = None,
+        offset: int | None = None,
+        limit: int | None = None,
+    ) -> Sequence[Transaction]:
+        return await self.crud.list(
+            filters=(Transaction.user_id == self.user.id,),
+            order_by=order_by,
+            offset=offset,
+            limit=limit,
+        )

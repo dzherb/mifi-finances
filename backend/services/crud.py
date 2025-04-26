@@ -1,11 +1,20 @@
 from collections.abc import Sequence
 
 from fastapi import HTTPException, status
+import pydantic
 from sqlalchemy.exc import DataError
+from sqlalchemy.sql._typing import _ColumnExpressionArgument
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from models.base import BaseModel
+
+type WhereClause = _ColumnExpressionArgument[bool] | bool
+
+
+class OrderByItem(pydantic.BaseModel):
+    field: str
+    desc: bool = False
 
 
 class BaseCRUD[T: BaseModel]:
@@ -28,13 +37,36 @@ class BaseCRUD[T: BaseModel]:
 
         return instance
 
-    async def all(
+    async def list(
         self,
+        filters: Sequence[WhereClause] | None = None,
+        order_by: Sequence[OrderByItem] | None = None,
         offset: int | None = None,
         limit: int | None = None,
     ) -> Sequence[T]:
-        query = select(self.model).offset(offset).limit(limit)
-        return (await self.session.exec(query)).all()
+        query = select(self.model)
+
+        if filters is not None:
+            for condition in filters:
+                query = query.where(condition)
+
+        if order_by is not None:
+            order_by_seq = (
+                getattr(self.model, order_column.field).desc()
+                if order_column.desc
+                else getattr(self.model, order_column.field)
+                for order_column in order_by
+            )
+            query = query.order_by(*order_by_seq)
+
+        if offset is not None:
+            query = query.offset(offset)
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        result = await self.session.exec(query)
+        return result.all()
 
     async def create(self, instance: T) -> T:
         try:
