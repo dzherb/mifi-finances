@@ -9,7 +9,12 @@ from typing import (
 from fastapi import HTTPException, status
 from fastapi.params import Query
 
-from services.crud import OrderByItem
+from models.base import BaseModel
+
+
+class OrderByItem(BaseModel):
+    field: str
+    desc: bool = False
 
 
 def order_by_dependency(
