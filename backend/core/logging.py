@@ -1,7 +1,7 @@
 import sys
 from typing import Literal, TypeAlias
 
-import loguru  # type: ignore
+import loguru
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = loguru.logger
