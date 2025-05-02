@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from api.v1.endpoints import auth, banks, ping, transactions
+from api.v1.endpoints import analytics, auth, banks, ping, transactions
 
 api_router = APIRouter()
 api_router.include_router(ping.router, prefix='/ping', tags=['ping'])
@@ -10,4 +10,9 @@ api_router.include_router(
     transactions.router,
     prefix='/transactions',
     tags=['transactions'],
+)
+api_router.include_router(
+    analytics.router,
+    prefix='/analytics',
+    tags=['analytics'],
 )
