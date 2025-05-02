@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from dependencies.params import OrderByItem
 from models.transaction import (
     Transaction,
     TransactionCategory,
@@ -13,7 +14,7 @@ from models.transaction import (
 )
 from models.user import User
 from schemas.transactions import TransactionCreate, TransactionUpdate
-from services.crud import BaseCRUD, OrderByItem
+from services.crud import BaseCRUD
 
 CATEGORY_NAME_NOT_UNIQUE_EXCEPTION = HTTPException(
     status_code=status.HTTP_400_BAD_REQUEST,

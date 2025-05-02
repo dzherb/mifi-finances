@@ -1,20 +1,15 @@
 from collections.abc import Sequence
 
 from fastapi import HTTPException, status
-import pydantic
 from sqlalchemy.exc import DataError
 from sqlalchemy.sql._typing import _ColumnExpressionArgument
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from dependencies.params import OrderByItem
 from models.base import BaseModel
 
 type WhereClause = _ColumnExpressionArgument[bool] | bool
-
-
-class OrderByItem(pydantic.BaseModel):
-    field: str
-    desc: bool = False
 
 
 class BaseCRUD[T: BaseModel]:

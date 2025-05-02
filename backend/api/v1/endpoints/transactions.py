@@ -7,7 +7,7 @@ from fastapi.params import Depends
 from api.params import EntityID
 from api.responses import BAD_REQUEST, FORBIDDEN, NOT_FOUND, UNAUTHORIZED
 from dependencies.db import Session
-from dependencies.params import order_by_dependency
+from dependencies.params import order_by_dependency, OrderByItem
 from dependencies.users import AdminUser, CurrentUser
 from models.transaction import Transaction, TransactionCategory
 from schemas.transactions import (
@@ -19,7 +19,6 @@ from schemas.transactions import (
     TransactionOut,
     TransactionUpdate,
 )
-from services.crud import OrderByItem
 from services.transactions import (
     TransactionCategoryCRUD,
     TransactionService,

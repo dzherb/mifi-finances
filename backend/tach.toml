@@ -1,0 +1,55 @@
+exclude = [
+    "**/*__pycache__",
+    "**/*egg-info",
+    "**/docs",
+    "**/tests",
+    "**/venv",
+    "**/.venv",
+]
+source_roots = [
+    ".",
+]
+
+[[modules ]]
+path = "schemas"
+depends_on = ["models", "core"]
+
+[[modules ]]
+path = "dependencies"
+depends_on = ["services", "models"]
+
+[[modules ]]
+path = "api"
+depends_on = ["schemas", "api.v1.endpoints"]
+
+[[modules ]]
+path = "services"
+depends_on = ["models", "dependencies", "schemas", "core"]
+
+[[modules ]]
+path = "migrations"
+depends_on = ["core", "models"]
+
+[[modules ]]
+path = "db"
+depends_on = []
+
+[[modules ]]
+path = "models"
+depends_on = ["core"]
+
+[[modules ]]
+path = "core"
+depends_on = []
+
+[[modules ]]
+path = "scripts"
+depends_on = ["models"]
+
+[[modules ]]
+path = "api.v1.endpoints"
+depends_on = ["dependencies", "services", "schemas", "models", "api"]
+
+[[modules ]]
+path = "tests"
+depends_on = []

@@ -7,7 +7,10 @@ from fastapi.responses import ORJSONResponse
 
 from api.v1.router import api_router
 from core.config import settings
+from core.logging import configure_logging
 from db.session import create_async_engine, create_async_session_factory
+
+configure_logging()
 
 
 @asynccontextmanager
