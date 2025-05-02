@@ -36,17 +36,17 @@ migrate: install-all-requirements
 	@uv run alembic upgrade head
 
 .PHONY: seed
-seed: install-all-requirements migrate
+seed: migrate
 	@echo "Database will be flushed first. Are you sure? (y/n)"
 	@read confirm && [ "$$confirm" = "y" ]
 	@uv run ./scripts/seed.py
 
 .PHONY: flush
-flush: install-all-requirements migrate
+flush: migrate
 	@echo "Database will be flushed. Are you sure? (y/n)"
 	@read confirm && [ "$$confirm" = "y" ]
 	@uv run ./scripts/seed.py --clear
 
 .PHONY: runserver
-runserver: install-all-requirements migrate
+runserver: migrate
 	@uv run uvicorn main:app --reload
