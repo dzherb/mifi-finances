@@ -54,3 +54,8 @@ flush: migrate
 .PHONY: runserver
 runserver: migrate
 	@uv run uvicorn main:app --reload
+
+.PHONY: dependency-graph
+dependency-graph:
+	@uv run tach sync
+	@uv run tach show --web
