@@ -15,12 +15,16 @@ lint: install-all-requirements
 	@uv run ruff check .
 	@uv run ruff format --check .
 
+.PHONY: lint-dotenv
+lint-dotenv:
+	@uv run dotenv-linter .env .env.template
+
 .PHONY: type-check
 type-check: install-all-requirements
 	@uv run mypy .
 
 .PHONY: full-check
-full-check: lint type-check
+full-check: lint lint-dotenv type-check
 
 .PHONY: fmt
 fmt: install-all-requirements
