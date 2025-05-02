@@ -1,12 +1,14 @@
 import argparse
+from collections.abc import Generator
+from contextlib import contextmanager, redirect_stdout
 from datetime import datetime
 import os
 import sys
+import warnings
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 import asyncio
-from typing import List
 
 from faker import Faker
 from sqlalchemy import delete
@@ -73,18 +75,18 @@ def create_timestamp() -> dict[str, datetime]:
 
 def create_transaction_timestamp() -> dict[str, datetime]:
     timestamp = create_timestamp()
-    occured_at = faker.date_time_between_dates(
+    occurred_at = faker.date_time_between_dates(
         datetime_start=timestamp['created_at'],
         datetime_end=datetime.now(),
     )
     return {
         **timestamp,
-        'occurred_at': occured_at,
+        'occurred_at': occurred_at,
     }
 
 
-async def create_banks(session: AsyncSession) -> List[Bank]:
-    banks: List[Bank] = [
+async def create_banks(session: AsyncSession) -> list[Bank]:
+    banks: list[Bank] = [
         Bank(
             name=faker.company(),
             **create_timestamp(),
@@ -101,8 +103,8 @@ async def create_banks(session: AsyncSession) -> List[Bank]:
 
 async def create_categories(
     session: AsyncSession,
-) -> List[TransactionCategory]:
-    categories: List[TransactionCategory] = [
+) -> list[TransactionCategory]:
+    categories: list[TransactionCategory] = [
         TransactionCategory(name=faker.word(), **create_timestamp())
         for _ in range(CATEGORIES_COUNT)
     ]
@@ -113,8 +115,8 @@ async def create_categories(
     return categories
 
 
-async def create_users(session: AsyncSession) -> List[User]:
-    users: List[User] = [
+async def create_users(session: AsyncSession) -> list[User]:
+    users: list[User] = [
         User(
             username=faker.user_name(),
             password=faker.password(length=12),
@@ -132,11 +134,11 @@ async def create_users(session: AsyncSession) -> List[User]:
 
 async def create_transactions(
     session: AsyncSession,
-    users: List[User],
-    banks: List[Bank],
-    categories: List[TransactionCategory],
+    users: list[User],
+    banks: list[Bank],
+    categories: list[TransactionCategory],
 ) -> None:
-    transactions: List[Transaction] = []
+    transactions: list[Transaction] = []
 
     for _ in range(TRANSACTIONS_COUNT):
         user = faker.random_element(elements=users)
@@ -191,17 +193,27 @@ async def seed(clear_only: bool) -> None:
         await clear_database(session)
 
         if not clear_only:
-            banks: List[Bank] = await create_banks(session)
-            categories: List[TransactionCategory] = await create_categories(
+            banks: list[Bank] = await create_banks(session)
+            categories: list[TransactionCategory] = await create_categories(
                 session,
             )
-            users: List[User] = await create_users(session)
+            users: list[User] = await create_users(session)
             await create_transactions(session, users, banks, categories)
 
     await engine.dispose()
 
 
-if __name__ == '__main__':
+@contextmanager
+def supress_logs_and_warnings() -> Generator[None]:
+    with (
+        open(os.devnull, 'w') as fnull,
+        redirect_stdout(fnull),
+        warnings.catch_warnings(action='ignore'),
+    ):
+        yield
+
+
+def main() -> None:
     parser = argparse.ArgumentParser(description='Seed the database')
     parser.add_argument(
         '--clear',
@@ -210,7 +222,14 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     clear: bool = args.clear
-    print('seeding data:')  # noqa: T201
-    print(f'clear: {clear}')  # noqa: T201
-    asyncio.run(seed(clear_only=clear))
-    print('done')  # noqa: T201
+
+    print('\nRunning the script...')  # noqa: T201
+
+    with supress_logs_and_warnings():
+        asyncio.run(seed(clear_only=clear))
+
+    print('Done.\n')  # noqa: T201
+
+
+if __name__ == '__main__':
+    main()

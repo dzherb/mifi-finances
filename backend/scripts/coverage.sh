@@ -8,4 +8,4 @@ uv run coverage run --source="$SCRIPT_DIR/../" -p -m pytest
 uv run coverage combine
 uv run coverage html
 
-python -m webbrowser -t "file:///$PROJECT_ROOT/htmlcov/index.html"
+open "$PROJECT_ROOT/htmlcov/index.html"

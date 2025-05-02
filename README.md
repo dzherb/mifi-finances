@@ -28,7 +28,6 @@ erDiagram
     INTEGER id PK
     DATETIME created_at
     DATETIME updated_at "nullable"
-    INTEGER user_id FK
     VARCHAR(12) party_type
     DATETIME occurred_at
     VARCHAR(6) transaction_type
@@ -42,6 +41,7 @@ erDiagram
     VARCHAR recipient_account_number
     INTEGER category_id FK
     VARCHAR recipient_phone
+    INTEGER user_id FK
   }
 
   banks {
@@ -51,10 +51,10 @@ erDiagram
     VARCHAR name UK
   }
 
-  users ||--o{ transactions : user_id
   banks ||--o{ transactions : sender_bank_id
   banks ||--o{ transactions : recipient_bank_id
   transaction_categories ||--o{ transactions : category_id
+  users ||--o{ transactions : user_id
 
 ```
 <!-- END_DB_SCHEMA_DOCS -->
