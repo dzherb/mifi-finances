@@ -6,25 +6,29 @@ import { TransactionCard } from '../../components/TransactionCard'
 import TuneIcon from '@mui/icons-material/Tune';
 import {Pagination} from '@mui/material';
 import { FiltersModal } from '../../components/FiltersModal'
+import { useGetTransactions } from '../../hooks/transaction/useGetTransactions'
+import { Transaction } from '../../api/transaction.api'
+
+const LIMIT = 10;
 
 export const MainPage = () => {
 
   const [transactionFormMode, setTransactionFormMode] = useState<TTransactionFormMode>()
-  const [defaultData, setDefaultData] = useState()
+  const [defaultData, setDefaultData] = useState<Transaction>()
 
   const [filtersData, setFiltersData] = useState()
-  const [transactions, setTransaction] = useState([1,2,3,4,5,6,7,8,9,10, 11, 12, 13, 14, 15, 16, 17])
-
   const [filtersOpen, setFiltersOpen] = useState(false)
+
   const [page, setPage] = useState(1)
+  const {data: transactions} = useGetTransactions({limit: LIMIT, offset: (page-1) * LIMIT})
 
   return (
     <div className={styles.mainPage}>
 
       <div className={styles.txWrap}>
-        {transactions.map(tx => (
+        {transactions?.map(tx => (
           <TransactionCard 
-            key={tx} 
+            key={tx.id} 
             data={tx} 
             onView={(data) => {
               setDefaultData(data)

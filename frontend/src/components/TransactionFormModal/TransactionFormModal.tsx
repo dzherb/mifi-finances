@@ -1,34 +1,65 @@
 import { Modal } from "../../ui/Modal"
 import CloseIcon from '@mui/icons-material/Close';
 import styles from "./TransactionFormModal.module.scss"
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { TextInput } from "../../ui/TextInput";
 import { Button } from "../../ui/Button";
+import { useAddTransaction } from "../../hooks/transaction/useAddTransaction";
+import { useUpdateTransaction } from "../../hooks/transaction/useUpdateTransaction";
+import { GetTransactionsReq, PartyType, Transaction, TransactionStatus, TransactionType } from "../../api/transaction.api";
+import { Autocomplete } from "../../ui/Autocomplete";
+import { IOption, PARTY_TYPE_OPTIONS, TRANSACTION_STATUS_OPTIONS, TRANSACTION_TYPE_OPTIONS } from "../../utils";
+import { useGetTransactionsCategories } from "../../hooks/transaction/useGetCategories";
+import { useGetBanks } from "../../hooks/bank/useGetBanks";
+import { AxiosError } from "axios";
 
 export type TTransactionFormMode = "view" | "add" | "edit" | undefined
 
 export interface TransactionFormModalProps {
   mode: TTransactionFormMode
   setMode: Dispatch<SetStateAction<TTransactionFormMode>>
-  defaultData?: any
+  defaultData?: Transaction
 }
 
 export const TransactionFormModal = (props: TransactionFormModalProps) => {
   const {mode, setMode, defaultData} = props
 
-  const [faceType, setFaceType] = useState(defaultData?.faceType || '')
-  const [datetime, setDatetime] = useState(defaultData?.datetime || '')
-  const [transactionType, setTransactionType] = useState(defaultData?.transactionType || '')
+  const add = useAddTransaction()
+  const update = useUpdateTransaction()
+
+  const {data: banks} = useGetBanks()
+  const {data: categories} = useGetTransactionsCategories()
+
+  const [faceType, setFaceType] = useState<IOption<PartyType> | undefined>(PARTY_TYPE_OPTIONS.find(opt => opt.value === defaultData?.party_type))
+  const [datetime, setDatetime] = useState(defaultData?.occurred_at || new Date().toISOString())
+  const [transactionType, setTransactionType] = useState<IOption<TransactionType> | undefined>(TRANSACTION_TYPE_OPTIONS.find(opt => opt.value === defaultData?.transaction_type))
   const [comment, setComment] = useState(defaultData?.comment || '')
   const [amount, setAmount] = useState(defaultData?.amount || '')
-  const [status, setStatus] = useState(defaultData?.status || '')
-  const [senderBank, setSenderBank] = useState(defaultData?.senderBank || '')
-  const [check, setCheck] = useState(defaultData?.check || '')
-  const [recipientBank, setRecipientBank] = useState(defaultData?.recipientBank || '')
-  const [recipientInn, setRecipientInn] = useState(defaultData?.recipientInn || '')
-  const [recipientCurrentAccount, setRecipientCurrentAccaunt] = useState(defaultData?.recipientCurrentAccount || '')
-  const [category, setCategory] = useState(defaultData?.category || '')
-  const [recipientPhone, setRecipientPhone] = useState(defaultData?.recipientPhone || '')
+  const [status, setStatus] = useState<IOption<TransactionStatus> | undefined>(TRANSACTION_STATUS_OPTIONS.find(opt => opt.value === defaultData?.status))
+  const [senderBank, setSenderBank] = useState<IOption<number>>()
+  const [check, setCheck] = useState(defaultData?.account_number || '')
+  const [recipientBank, setRecipientBank] = useState<IOption<number>>()
+  const [recipientInn, setRecipientInn] = useState(defaultData?.recipient_inn || '')
+  const [recipientCurrentAccount, setRecipientCurrentAccaunt] = useState(defaultData?.recipient_account_number || '')
+  const [category, setCategory] = useState<IOption<number>>()
+  const [recipientPhone, setRecipientPhone] = useState(defaultData?.recipient_phone || '')
+
+  useEffect(() => {
+    if (!categories || !defaultData) { return }
+
+    const category = categories.find(cat =>cat.value === defaultData.category_id)
+    setCategory(category)
+  }, [categories, defaultData])
+
+  useEffect(() => {
+    if (!banks || !defaultData) { return }
+
+    const sBank = banks.find(bank => bank.value === defaultData.sender_bank_id)
+    const rBank = banks.find(bank => bank.value === defaultData.recipient_bank_id)
+  
+    setSenderBank(sBank)
+    setRecipientBank(rBank)
+  }, [banks, defaultData])
 
   const title = useMemo(() => {
     if (mode === "add") {
@@ -46,22 +77,71 @@ export const TransactionFormModal = (props: TransactionFormModalProps) => {
         <CloseIcon className={styles.close} onClick={() => setMode(undefined)}/>
         <h1>{title}</h1>
         <div className={styles.wrap}>
-          <TextInput disabled={mode === "view"} className={styles.input} label="Тип лица" value={faceType} setValue={setFaceType}/>
+          <Autocomplete disabled={mode === "view"} className={styles.input} label="Тип лица" options={PARTY_TYPE_OPTIONS} value={faceType} setValue={setFaceType}/>
           <TextInput disabled={mode === "view"} className={styles.input} label="Дата и время операции" value={datetime} setValue={setDatetime}/>
-          <TextInput disabled={mode === "edit" || mode === 'view'} className={styles.input} label="Тип транзакции" value={transactionType} setValue={setTransactionType}/>
+          <Autocomplete disabled={mode === "edit" || mode === 'view'} className={styles.input} label="Тип транзакции" options={TRANSACTION_TYPE_OPTIONS} value={transactionType} setValue={setTransactionType}/>
           <TextInput disabled={mode === "view"} className={styles.input} label="Комментарий к операции" value={comment} setValue={setComment}/>
           <TextInput disabled={mode === "view"} className={styles.input} label="Сумма" value={amount} setValue={setAmount}/>
-          <TextInput disabled={mode === "view"} className={styles.input} label="Статус операции" value={status} setValue={setStatus}/>
-          <TextInput disabled={mode === "view"} className={styles.input} label="Банк отправителя" value={senderBank} setValue={setSenderBank}/>
+          <Autocomplete disabled={mode === "view"} className={styles.input} label="Статус операции" options={TRANSACTION_STATUS_OPTIONS} value={status} setValue={setStatus}/>
+          <Autocomplete disabled={mode === "view"} className={styles.input} label="Банк отправителя" options={banks || []} value={senderBank} setValue={setSenderBank}/>
           <TextInput disabled={mode === "edit" || mode === 'view'} className={styles.input} label="Счет поступления / списания" value={check} setValue={setCheck}/>
-          <TextInput disabled={mode === "view"} className={styles.input} label="Банк получателя" value={recipientBank} setValue={setRecipientBank}/>
+          <Autocomplete disabled={mode === "view"} className={styles.input} label="Банк получателя" options={banks || []} value={recipientBank} setValue={setRecipientBank}/>
           <TextInput disabled={mode === "view"} className={styles.input} label="ИНН получателя" value={recipientInn} setValue={setRecipientInn}/>
           <TextInput disabled={mode === "edit" || mode === 'view'} className={styles.input} label="Расчетный счет получателя" value={recipientCurrentAccount} setValue={setRecipientCurrentAccaunt}/>
-          <TextInput disabled={mode === "view"} className={styles.input} label="Категория" value={category} setValue={setCategory}/>
+          <Autocomplete disabled={mode === "view"} className={styles.input} label="Категория" options={categories || []} value={category} setValue={setCategory}/>
           <TextInput disabled={mode === "view"} className={styles.input} label="Телефон получателя" value={recipientPhone} setValue={setRecipientPhone}/>
         </div>
         <Button className={styles.add} onClick={() => { 
-          /* TODO */
+          if (
+            !faceType ||
+            !transactionType ||
+            !senderBank ||
+            !recipientBank ||
+            !category ||
+            !status
+          ) {
+            return;
+          }
+          if (mode === "add") {
+            add.mutate({
+              party_type: faceType.value,
+              occurred_at: datetime,
+              transaction_type: transactionType.value,
+              comment,
+              amount,
+              status: status.value,
+              sender_bank_id: senderBank.value,
+              account_number: check,  
+              recipient_bank_id: recipientBank.value,
+              recipient_inn: recipientInn,
+              recipient_account_number: recipientCurrentAccount,
+              category_id: category.value,
+              recipient_phone: recipientPhone,
+            }, {
+              onSuccess: () => {setMode(undefined)},
+              onError: (e) => alert(JSON.stringify(e.response?.data, undefined, 2))
+            })
+            return;
+          }
+          if (mode === "edit" && defaultData) {
+            update.mutate({
+              id: defaultData.id,
+              party_type: faceType.value,
+              occurred_at: datetime,
+              comment,
+              amount,
+              status: status.value,
+              sender_bank_id: senderBank.value,
+              recipient_bank_id: recipientBank.value,
+              recipient_inn: recipientInn,
+              category_id: category.value,
+              recipient_phone: recipientPhone,
+            }, {
+              onSuccess: () => {setMode(undefined)},
+              onError: (e) => alert(JSON.stringify(e.response?.data, undefined, 2))
+            })
+            return;
+          }
           setMode(undefined)
         }}>{mode === "add" ? "Добавить" : mode === "edit" ? "Изменить" : "Закрыть"}</Button>
       </div>

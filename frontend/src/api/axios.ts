@@ -4,7 +4,7 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios'
 export const REFRESH = "refresh-token"
 export const ACCESS = "access-token"
 
-const URL = "http://localhost/api"
+const URL = "http://localhost:8000/api/v1"
 
 const instance = axios.create({
   baseURL: URL,
@@ -36,13 +36,13 @@ export async function withRetry(req: (inst: AxiosInstance) => Promise<AxiosRespo
 
 
 export async function getToken(): Promise<void> {
-  const res = await instance.post('user/refresh', {refresh: getCookie(REFRESH)})
+  const res = await instance.post('auth/refresh', {refresh_token: getCookie(REFRESH)})
 
   if (res.status === 401) {
     throw new Error("Unauthorized")
   }
 
-  const {access, refresh} = res.data
+  const {access_token: access, refresh_token: refresh} = res.data
   
   setCookie(REFRESH, refresh)
   localStorage.setItem(ACCESS, access)
