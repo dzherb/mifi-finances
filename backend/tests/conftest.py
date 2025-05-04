@@ -32,7 +32,7 @@ def event_loop_policy() -> AbstractEventLoopPolicy:
         return asyncio.DefaultEventLoopPolicy()
     import uvloop  # type: ignore
 
-    return uvloop.EventLoopPolicy()
+    return uvloop.EventLoopPolicy()  # type: ignore
 
 
 @pytest.fixture(scope='session')
