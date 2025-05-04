@@ -13,7 +13,7 @@ BANK_NAME_NOT_UNIQUE_EXCEPTION = HTTPException(
 )
 
 
-class BankCRUD(BaseCRUD[Bank]):
+class BankService(BaseCRUD[Bank]):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session)
         self.model = Bank

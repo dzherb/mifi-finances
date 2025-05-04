@@ -8,7 +8,7 @@ from dependencies.db import Session
 from dependencies.users import admin_token_dependency
 from models.bank import Bank
 from schemas.banks import BankCreate, BankOut, BankOutShort, BankUpdate
-from services.banks import BankCRUD
+from services.banks import BankService
 
 router = APIRouter()
 
@@ -24,7 +24,7 @@ async def create_bank(
     session: Session,
     bank: BankCreate,
 ) -> Bank:
-    return await BankCRUD(session).create(Bank.model_validate(bank))
+    return await BankService(session).create(Bank.model_validate(bank))
 
 
 @router.patch(
@@ -38,7 +38,7 @@ async def update_bank(
     bank: BankUpdate,
     bank_id: EntityID,
 ) -> Bank:
-    crud = BankCRUD(session)
+    crud = BankService(session)
     bank_from_db = await crud.get(bank_id)
     bank_from_db.sqlmodel_update(
         bank.model_dump(exclude_unset=True, exclude_defaults=True),
@@ -56,7 +56,7 @@ async def delete_bank(
     session: Session,
     bank_id: EntityID,
 ) -> None:
-    await BankCRUD(session).delete(bank_id)
+    await BankService(session).delete(bank_id)
 
 
 @router.get(
@@ -65,4 +65,4 @@ async def delete_bank(
     response_model=list[BankOutShort],
 )
 async def all_banks(session: Session) -> Sequence[Bank]:
-    return await BankCRUD(session).list()
+    return await BankService(session).list()

@@ -5,7 +5,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from models.bank import Bank
-from services.banks import BankCRUD
+from services.banks import BankService
 
 
 async def test_create_bank(admin_client: AsyncClient) -> None:
@@ -42,7 +42,7 @@ async def test_update_bank(
     request_data: dict[str, str | None],
     response_name: str,
 ) -> None:
-    bank = await BankCRUD(session).create(Bank(name='Bank1'))
+    bank = await BankService(session).create(Bank(name='Bank1'))
 
     response = await admin_client.patch(
         url=f'/api/v1/banks/{bank.id}',
@@ -60,7 +60,7 @@ async def test_delete_bank(
     admin_client: AsyncClient,
     session: AsyncSession,
 ) -> None:
-    bank = await BankCRUD(session).create(Bank(name='Bank1'))
+    bank = await BankService(session).create(Bank(name='Bank1'))
 
     response = await admin_client.delete(f'/api/v1/banks/{bank.id}')
     assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -73,7 +73,7 @@ async def test_all_banks(
     admin_client: AsyncClient,
     session: AsyncSession,
 ) -> None:
-    crud = BankCRUD(session)
+    crud = BankService(session)
     bank1 = await crud.create(Bank(name='Bank1'))
     bank2 = await crud.create(Bank(name='Bank2'))
 
