@@ -10,6 +10,10 @@ test: install-all-requirements
 coverage: install-all-requirements
 	@./scripts/coverage.sh
 
+.PHONY: clean
+clean:
+	@rm -rf .coverage htmlcov
+
 .PHONY: lint
 lint: install-all-requirements
 	@uv run ruff check .
@@ -28,8 +32,8 @@ full-check: lint lint-dotenv type-check
 
 .PHONY: fmt
 fmt: install-all-requirements
-	@uv run ruff check --fix .
 	@uv run ruff format .
+	@uv run ruff check --fix .
 
 .PHONY: migrations
 migrations: install-all-requirements

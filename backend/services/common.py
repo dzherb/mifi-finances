@@ -3,7 +3,8 @@ from sqlalchemy.exc import DataError, DBAPIError
 
 
 def is_data_error(exc: DBAPIError) -> bool:
-    if isinstance(exc, DataError):
+    # This is True while using psycopg
+    if isinstance(exc, DataError):  # pragma: no cover
         return True
 
     if exc.orig:
