@@ -39,6 +39,7 @@ _OrderBy = Depends(
 @router.get(
     path='',
     responses=UNAUTHORIZED | BAD_REQUEST,
+    response_model=SequenceResponse[TransactionOut],
 )
 async def my_transactions(
     user: CurrentUser,
@@ -46,7 +47,7 @@ async def my_transactions(
     order_by: Annotated[list[OrderByItem], _OrderBy],
     offset: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(gt=0, lt=100)] = 10,
-) -> SequenceResponse[TransactionOut]:
+) -> SequenceResponse[Transaction]:
     return await TransactionService(session, user).user_transactions(
         order_by=order_by,
         offset=offset,
