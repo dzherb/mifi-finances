@@ -220,6 +220,16 @@ def supress_logs_and_warnings() -> Generator[None]:
         yield
 
 
+def confirm_action(message: str) -> bool:
+    print(f'\n{message} (y/n)')  # noqa: T201
+    try:
+        confirm = input().strip().lower()
+        return confirm == 'y'
+    except KeyboardInterrupt:
+        print('\nOperation cancelled.')  # noqa: T201
+        return False
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description='Seed the database')
     parser.add_argument(
@@ -229,6 +239,15 @@ def main() -> None:
     )
     args = parser.parse_args()
     clear: bool = args.clear
+
+    if clear:
+        message = 'Database will be flushed. Are you sure?'
+    else:
+        message = 'Database will be flushed first. Are you sure?'
+
+    if not confirm_action(message):
+        print('Operation aborted.')  # noqa: T201
+        sys.exit(0)
 
     print('\nRunning the script...')  # noqa: T201
 

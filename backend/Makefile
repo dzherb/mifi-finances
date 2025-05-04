@@ -41,14 +41,10 @@ migrate: install-all-requirements
 
 .PHONY: seed
 seed: migrate
-	@echo "Database will be flushed first. Are you sure? (y/n)"
-	@read confirm && [ "$$confirm" = "y" ]
 	@uv run ./scripts/seed.py
 
 .PHONY: flush
 flush: migrate
-	@echo "Database will be flushed. Are you sure? (y/n)"
-	@read confirm && [ "$$confirm" = "y" ]
 	@uv run ./scripts/seed.py --clear
 
 .PHONY: runserver
