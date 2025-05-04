@@ -10,6 +10,7 @@ from dependencies.db import Session
 from dependencies.params import order_by_dependency, OrderByItem
 from dependencies.users import AdminUser, CurrentUser
 from models.transaction import Transaction, TransactionCategory
+from schemas.common import SequenceResponse
 from schemas.transactions import (
     TransactionCategoryCreate,
     TransactionCategoryOut,
@@ -38,7 +39,6 @@ _OrderBy = Depends(
 @router.get(
     path='',
     responses=UNAUTHORIZED | BAD_REQUEST,
-    response_model=list[TransactionOut],
 )
 async def my_transactions(
     user: CurrentUser,
@@ -46,7 +46,7 @@ async def my_transactions(
     order_by: Annotated[list[OrderByItem], _OrderBy],
     offset: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(gt=0, lt=100)] = 10,
-) -> Sequence[Transaction]:
+) -> SequenceResponse[TransactionOut]:
     return await TransactionService(session, user).user_transactions(
         order_by=order_by,
         offset=offset,

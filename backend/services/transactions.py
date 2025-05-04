@@ -206,11 +206,12 @@ class TransactionService:
         offset: int | None = None,
         limit: int | None = None,
     ) -> SequenceResponse[Transaction]:
-        count = await self.crud.count()
+        user_filter = (Transaction.user_id == self.user.id,)
+        count = await self.crud.count(filters=user_filter)
         items = await self.crud.list(
-            filters=(Transaction.user_id == self.user.id,),
+            filters=(user_filter),
             order_by=order_by,
             offset=offset,
             limit=limit,
         )
-        return SequenceResponse(items=items, count=count)
+        return SequenceResponse(items=items, total_count=count)

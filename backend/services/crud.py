@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from fastapi import HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import func, Select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.sql._typing import _ColumnExpressionArgument
 from sqlmodel import select
@@ -20,9 +20,14 @@ class BaseCRUD[T: BaseModel]:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def count(self) -> int:
-        statement = select(func.count()).select_from(self.model)
-        return await self.session.exec(statement)
+    async def count(
+        self,
+        filters: Sequence[WhereClause] | None = None,
+    ) -> int:
+        query = select(func.count()).select_from(self.model)
+        query = self._apply_filters(query, filters)
+        result = await self.session.exec(query)
+        return result.one()
 
     async def get(self, instance_id: int) -> T:
         try:
@@ -51,9 +56,7 @@ class BaseCRUD[T: BaseModel]:
     ) -> Sequence[T]:
         query = select(self.model)
 
-        if filters is not None:
-            for condition in filters:
-                query = query.where(condition)
+        query = self._apply_filters(query, filters)
 
         if order_by is not None:
             order_by_seq = (
@@ -122,3 +125,14 @@ class BaseCRUD[T: BaseModel]:
                 ) from e
 
             raise e
+
+    def _apply_filters(
+        self,
+        query: Select[T],
+        filters: Sequence[WhereClause] | None = None,
+    ) -> Select[T]:
+        if filters is not None:
+            for condition in filters:
+                query = query.where(condition)
+
+        return query
