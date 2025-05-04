@@ -1,13 +1,14 @@
 from collections.abc import Sequence
 
 from fastapi import HTTPException, status
-from sqlalchemy.exc import DataError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.sql._typing import _ColumnExpressionArgument
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from dependencies.params import OrderByItem
 from models.base import BaseModel
+from services.common import is_data_error
 
 type WhereClause = _ColumnExpressionArgument[bool] | bool
 
@@ -21,10 +22,14 @@ class BaseCRUD[T: BaseModel]:
     async def get(self, instance_id: int) -> T:
         try:
             instance = await self.session.get(self.model, instance_id)
-        except DataError as e:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-            ) from e
+        except DBAPIError as e:
+            if is_data_error(e):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                ) from e
+
+            raise e
+
         if instance is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -60,17 +65,29 @@ class BaseCRUD[T: BaseModel]:
         if limit is not None:
             query = query.limit(limit)
 
-        result = await self.session.exec(query)
+        try:
+            result = await self.session.exec(query)
+        except DBAPIError as e:
+            if is_data_error(e):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                ) from e
+
+            raise e
+
         return result.all()
 
     async def create(self, instance: T) -> T:
         try:
             self.session.add(instance)
             await self.session.commit()
-        except DataError as e:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-            ) from e
+        except DBAPIError as e:
+            if is_data_error(e):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                ) from e
+
+            raise e
 
         return instance
 
@@ -78,10 +95,14 @@ class BaseCRUD[T: BaseModel]:
         try:
             self.session.add(instance)
             await self.session.commit()
-        except DataError as e:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-            ) from e
+        except DBAPIError as e:
+            if is_data_error(e):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                ) from e
+
+            raise e
+
         return instance
 
     async def delete(self, instance_id: int) -> None:
@@ -89,7 +110,10 @@ class BaseCRUD[T: BaseModel]:
         try:
             await self.session.delete(instance)
             await self.session.commit()
-        except DataError as e:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-            ) from e
+        except DBAPIError as e:
+            if is_data_error(e):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                ) from e
+
+            raise e

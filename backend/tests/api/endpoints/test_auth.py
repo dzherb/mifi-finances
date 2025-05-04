@@ -115,7 +115,6 @@ async def test_user_can_register(
     client: AsyncClient,
 ) -> None:
     assert (await session.exec(select(User))).first() is None
-
     register_response = await client.post(
         '/api/v1/auth/register',
         json={'username': 'new_user', 'password': 'password'},
@@ -123,3 +122,28 @@ async def test_user_can_register(
     assert register_response.status_code == status.HTTP_201_CREATED
     assert 'access_token' in register_response.json()
     assert await session.exec(select(User)) is not None
+
+
+async def test_user_cant_register(
+    session: AsyncSession,
+    client: AsyncClient,
+) -> None:
+    assert (await session.exec(select(User))).first() is None
+
+    response = await client.post(
+        '/api/v1/auth/register',
+        json={'username': 'new_user', 'password': 'password'},
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+
+    # Attempt to use the same username
+    response = await client.post(
+        '/api/v1/auth/register',
+        json={'username': 'new_user', 'password': 'strong_pass'},
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    data = response.json()
+
+    assert data['detail'] == 'Username is already taken'
+
+    assert len((await session.exec(select(User))).all()) == 1

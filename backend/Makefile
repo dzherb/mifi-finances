@@ -10,6 +10,10 @@ test: install-all-requirements
 coverage: install-all-requirements
 	@./scripts/coverage.sh
 
+.PHONY: clean
+clean:
+	@rm -rf .coverage htmlcov
+
 .PHONY: lint
 lint: install-all-requirements
 	@uv run ruff check .
@@ -28,8 +32,8 @@ full-check: lint lint-dotenv type-check
 
 .PHONY: fmt
 fmt: install-all-requirements
-	@uv run ruff check --fix .
 	@uv run ruff format .
+	@uv run ruff check --fix .
 
 .PHONY: migrations
 migrations: install-all-requirements
@@ -41,16 +45,17 @@ migrate: install-all-requirements
 
 .PHONY: seed
 seed: migrate
-	@echo "Database will be flushed first. Are you sure? (y/n)"
-	@read confirm && [ "$$confirm" = "y" ]
 	@uv run ./scripts/seed.py
 
 .PHONY: flush
 flush: migrate
-	@echo "Database will be flushed. Are you sure? (y/n)"
-	@read confirm && [ "$$confirm" = "y" ]
 	@uv run ./scripts/seed.py --clear
 
 .PHONY: runserver
 runserver: migrate
 	@uv run uvicorn main:app --reload
+
+.PHONY: dependency-graph
+dependency-graph:
+	@uv run tach sync
+	@uv run tach show --web

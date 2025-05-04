@@ -26,6 +26,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "asgi-lifespan==2.*",
+    "asyncpg-stubs>=0.30.1",
     "coverage>=7.8.0",
     "dotenv-linter>=0.7.0",
     "faker>=37.1.0",
@@ -51,8 +52,23 @@ exclude = [
     '^migrations/versions/*$',
 ]
 
+[tool.pytest.ini_options]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    # model_fields is accessed in sqlmodel, not in our code
+    "ignore::pydantic.warnings.PydanticDeprecatedSince211:sqlmodel",
+    # schemathesis bugs
+    "ignore::DeprecationWarning:schemathesis",
+    "ignore::DeprecationWarning:hypothesis_jsonschema",
+    "ignore::hypothesis.errors.HypothesisSideeffectWarning:hypothesis",
+]
+xfail_strict = true
+
 [tool.coverage.report]
 exclude_also = [
+    'pragma: no cover',
     'def __repr__',
     'raise NotImplementedError',
     'if __name__ == .__main__.:',

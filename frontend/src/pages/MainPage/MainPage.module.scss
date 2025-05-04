@@ -1,0 +1,42 @@
+
+.mainPage {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.menu {
+  position: fixed !important;
+  top: calc(var(--header-height) + 16px);
+  right: 16px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.txWrap {
+  position: relative;
+  width: 100%;
+  height: calc(100% - 48px);
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  
+  border-bottom: 1px solid rgba(0,0,0,.1);
+}
+
+.pagination {
+  width: 100%;
+  height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+}

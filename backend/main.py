@@ -14,11 +14,13 @@ configure_logging()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # pragma: no cover
     app.state.engine = create_async_engine(settings.DATABASE_URL)
     app.state.async_session = create_async_session_factory(app.state.engine)
-    yield
-    await app.state.engine.dispose()
+    try:
+        yield
+    finally:
+        await app.state.engine.dispose()
 
 
 app = FastAPI(

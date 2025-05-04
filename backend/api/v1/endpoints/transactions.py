@@ -20,7 +20,7 @@ from schemas.transactions import (
     TransactionUpdate,
 )
 from services.transactions import (
-    TransactionCategoryCRUD,
+    TransactionCategoryService,
     TransactionService,
 )
 
@@ -98,7 +98,7 @@ async def create_category(
     session: Session,
     category: TransactionCategoryCreate,
 ) -> TransactionCategory:
-    return await TransactionCategoryCRUD(session).create(
+    return await TransactionCategoryService(session).create(
         TransactionCategory.model_validate(category),
     )
 
@@ -114,7 +114,7 @@ async def update_category(
     category: TransactionCategoryUpdate,
     category_id: EntityID,
 ) -> TransactionCategory:
-    crud = TransactionCategoryCRUD(session)
+    crud = TransactionCategoryService(session)
     category_from_db = await crud.get(category_id)
     category_from_db.sqlmodel_update(
         category.model_dump(exclude_unset=True, exclude_defaults=True),
@@ -132,7 +132,7 @@ async def delete_category(
     session: Session,
     category_id: EntityID,
 ) -> None:
-    await TransactionCategoryCRUD(session).delete(category_id)
+    await TransactionCategoryService(session).delete(category_id)
 
 
 @router.get(
@@ -141,4 +141,4 @@ async def delete_category(
     response_model=list[TransactionCategoryOutShort],
 )
 async def all_categories(session: Session) -> Sequence[TransactionCategory]:
-    return await TransactionCategoryCRUD(session).list()
+    return await TransactionCategoryService(session).list()

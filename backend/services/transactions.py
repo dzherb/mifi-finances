@@ -22,7 +22,7 @@ CATEGORY_NAME_NOT_UNIQUE_EXCEPTION = HTTPException(
 )
 
 
-class TransactionCategoryCRUD(BaseCRUD[TransactionCategory]):
+class TransactionCategoryService(BaseCRUD[TransactionCategory]):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session)
         self.model = TransactionCategory
