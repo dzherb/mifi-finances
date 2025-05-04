@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from enum import Enum
 from typing import Self
 
 from pydantic import BaseModel, model_validator
@@ -8,53 +9,47 @@ from schemas.banks import BankOutShort
 from schemas.transactions import TransactionCategoryOutShort
 
 
-class Period(BaseModel):
+class StartEnd(BaseModel):
     start: datetime
     end: datetime
 
     @model_validator(mode='after')
     def check_dates(self) -> Self:
         if self.end < self.start:
-            raise ValueError('End time must not be earlier than start time')
+            raise ValueError('end time must not be earlier than start time')
 
         return self
 
 
-class DynamicsByPeriodEntry(BaseModel):
+class Interval(str, Enum):
+    WEEK = 'week'
+    MONTH = 'moth'
+    QUARTER = 'quarter'
+    YEAR = 'year'
+
+
+class DynamicsByIntervalEntry(BaseModel):
     timestamp: datetime
     count: int
 
 
-class DynamicsByPeriod(BaseModel):
-    start: datetime
-    end: datetime
-
-    total_transactions: int
-    credit_transactions: int
-    debit_transactions: int
+class DynamicsByInterval(StartEnd):
+    interval: Interval
+    entries: list[DynamicsByIntervalEntry]
 
 
-class DynamicsByType(BaseModel):
-    start: datetime
-    end: datetime
-
+class DynamicsByType(StartEnd):
     total_transactions: int
     total_funds: Decimal
 
 
-class ReceivedAndSpentComparison(BaseModel):
-    start: datetime
-    end: datetime
-
+class ReceivedAndSpentComparison(StartEnd):
     total_received: Decimal
     total_spent: Decimal
     received_to_spent: Decimal
 
 
-class DynamicsByStatus(BaseModel):
-    start: datetime
-    end: datetime
-
+class DynamicsByStatus(StartEnd):
     total_successful_transactions: int
     total_cancelled_transactions: int
 
@@ -65,10 +60,7 @@ class BankStatistics(BaseModel):
     total_funds: Decimal
 
 
-class DynamicsByBanks(BaseModel):
-    start: datetime
-    end: datetime
-
+class DynamicsByBanks(StartEnd):
     sender_banks: list[BankStatistics]
     recipient_banks: list[BankStatistics]
 
@@ -79,9 +71,6 @@ class CategoryStatistics(BaseModel):
     total_funds: Decimal
 
 
-class DynamicsByCategories(BaseModel):
-    start: datetime
-    end: datetime
-
+class DynamicsByCategories(StartEnd):
     spending_categories: list[CategoryStatistics]
     income_categories: list[CategoryStatistics]

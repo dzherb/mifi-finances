@@ -26,6 +26,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "asgi-lifespan==2.*",
+    "asyncpg-stubs>=0.30.1",
     "coverage>=7.8.0",
     "dotenv-linter>=0.7.0",
     "faker>=37.1.0",
