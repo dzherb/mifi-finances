@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 
 from fastapi import HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.sql._typing import _ColumnExpressionArgument
 from sqlmodel import select
@@ -18,6 +19,10 @@ class BaseCRUD[T: BaseModel]:
 
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
+
+    async def count(self) -> int:
+        statement = select(func.count()).select_from(self.model)
+        return await self.session.exec(statement)
 
     async def get(self, instance_id: int) -> T:
         try:
