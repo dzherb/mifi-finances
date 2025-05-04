@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import SecurityScopes
 from jwt import ExpiredSignatureError, InvalidTokenError
 from pydantic import ValidationError
-from sqlalchemy.exc import DataError, IntegrityError
+from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -20,8 +20,10 @@ from core.security import (
 from dependencies.db import Session
 from models.user import User
 from schemas.auth import AccessToken, BaseToken, RefreshToken, TokenPair
+from services.common import is_data_error
 from services.users import create_user
 
+# todo fix final typing
 CREDENTIALS_EXCEPTION: Final[HTTPException] = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail='Could not validate credentials',
@@ -47,8 +49,11 @@ async def authenticate_user(
         result = await session.exec(
             select(User).where(User.username == username),
         )
-    except DataError as e:
-        raise AUTH_EXCEPTION from e
+    except DBAPIError as e:
+        if is_data_error(e):
+            raise AUTH_EXCEPTION from e
+
+        raise e
 
     user = result.one_or_none()
     if not user or not verify_password(password, user.password):
@@ -136,10 +141,13 @@ async def register_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Username is already taken',
         ) from e
-    except DataError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-        ) from e
+    except DBAPIError as e:
+        if is_data_error(e):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+            ) from e
+
+        raise e
 
     return await issue_token_pair(session, user)
 
