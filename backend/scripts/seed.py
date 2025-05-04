@@ -26,7 +26,7 @@ from models.transaction import (
 )
 from models.user import User
 
-faker = Faker()
+faker = Faker(locale='ru-RU')
 faker.seed_instance(2)
 
 BANKS_COUNT = 10
@@ -116,19 +116,26 @@ async def create_categories(
 
 
 async def create_users(session: AsyncSession) -> list[User]:
-    users: list[User] = [
-        User(
-            username=faker.user_name(),
-            password=faker.password(length=12),
-            is_admin=faker.boolean(chance_of_getting_true=20),
-            **create_timestamp(),
+    from services.users import create_user
+
+    users: list[User] = []
+    for _ in range(USERS_COUNT - 2):
+        username = faker.user_name()
+        password = username
+        is_admin = faker.boolean(chance_of_getting_true=20)
+        user = await create_user(
+            session,
+            username,
+            password,
+            is_admin,
         )
-        for _ in range(USERS_COUNT)
-    ]
-    session.add_all(users)
-    await session.commit()
-    for user in users:
-        await session.refresh(user)
+        users.append(user)
+
+    admin = await create_user(session, 'admin', 'admin', True)
+    user = await create_user(session, 'user', 'user', False)
+    users.append(admin)
+    users.append(user)
+
     return users
 
 
@@ -150,7 +157,7 @@ async def create_transactions(
         category = faker.random_element(elements=categories)
 
         transaction = Transaction(
-            recipient_phone=faker.phone_number(),
+            recipient_phone=faker.numerify('+79#########'),
             recipient_inn=faker.random_element(elements=INNS),
             account_number=str(faker.random_int(min=100, max=100_000)),
             recipient_account_number=str(
