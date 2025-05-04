@@ -1,6 +1,9 @@
+import asyncio
+from asyncio import AbstractEventLoopPolicy
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager
 import os
+import platform
 from urllib.parse import urlparse
 
 from alembic import command
@@ -8,9 +11,11 @@ from asgi_lifespan import LifespanManager
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 import pytest
+from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncEngine
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.types import ASGIApp
+import uvloop
 
 from api.v1.router import api_router
 from core.config import settings
@@ -18,6 +23,16 @@ from db.session import create_async_engine, create_async_session_factory
 from models.user import User
 from services.users import create_user
 from tests.utils import get_alembic_config, tmp_database
+
+type SessionFactory = async_sessionmaker[AsyncSession]
+
+
+@pytest.fixture(scope='session')
+def event_loop_policy() -> AbstractEventLoopPolicy:
+    if platform.system() == 'Windows':  # pragma: no cover
+        return asyncio.DefaultEventLoopPolicy()
+
+    return uvloop.EventLoopPolicy()
 
 
 @pytest.fixture(scope='session')
@@ -51,22 +66,24 @@ def migrated_db(db_url: str, migrated_db_template: str) -> Generator[str]:
 
 @pytest.fixture
 def engine(migrated_db: str) -> AsyncEngine:
-    return create_async_engine(migrated_db)
+    return create_async_engine(
+        database_url=migrated_db,
+        # https://github.com/MagicStack/asyncpg/issues/863#issuecomment-1229220920
+        pool_class=NullPool,
+    )
 
 
 @pytest.fixture
 async def session_factory(
     engine: AsyncEngine,
-) -> AsyncGenerator[async_sessionmaker[AsyncSession]]:
-    yield create_async_session_factory(
-        engine,
-    )
+) -> AsyncGenerator[SessionFactory]:
+    yield create_async_session_factory(engine)
     await engine.dispose()
 
 
 @pytest.fixture
 async def session(
-    session_factory: async_sessionmaker[AsyncSession],
+    session_factory: SessionFactory,
 ) -> AsyncGenerator[AsyncSession]:
     async with session_factory() as session:
         yield session
@@ -75,7 +92,7 @@ async def session(
 @pytest.fixture
 async def fastapi_app(
     engine: AsyncEngine,
-    session_factory: async_sessionmaker[AsyncSession],
+    session_factory: SessionFactory,
 ) -> ASGIApp:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
@@ -83,7 +100,10 @@ async def fastapi_app(
         app.state.async_session = session_factory
         yield
 
-    app = FastAPI(lifespan=lifespan, default_response_class=ORJSONResponse)
+    app = FastAPI(
+        lifespan=lifespan,
+        default_response_class=ORJSONResponse,
+    )
     app.include_router(api_router, prefix='/api/v1')
     return app
 
