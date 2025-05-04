@@ -13,6 +13,7 @@ from models.transaction import (
     TransactionStatus,
 )
 from models.user import User
+from schemas.common import SequenceResponse
 from schemas.transactions import TransactionCreate, TransactionUpdate
 from services.crud import BaseCRUD
 
@@ -204,10 +205,12 @@ class TransactionService:
         order_by: Sequence[OrderByItem] | None = None,
         offset: int | None = None,
         limit: int | None = None,
-    ) -> Sequence[Transaction]:
-        return await self.crud.list(
+    ) -> SequenceResponse[Transaction]:
+        count = await self.crud.count()
+        items = await self.crud.list(
             filters=(Transaction.user_id == self.user.id,),
             order_by=order_by,
             offset=offset,
             limit=limit,
         )
+        return SequenceResponse(items=items, count=count)
