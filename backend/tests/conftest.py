@@ -15,7 +15,6 @@ from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncEngine
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.types import ASGIApp
-import uvloop
 
 from api.v1.router import api_router
 from core.config import settings
@@ -31,6 +30,7 @@ type SessionFactory = async_sessionmaker[AsyncSession]
 def event_loop_policy() -> AbstractEventLoopPolicy:
     if platform.system() == 'Windows':  # pragma: no cover
         return asyncio.DefaultEventLoopPolicy()
+    import uvloop  # type: ignore
 
     return uvloop.EventLoopPolicy()
 
