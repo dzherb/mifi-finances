@@ -1,6 +1,7 @@
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 import typing
 from typing import Never
+import warnings
 
 from dateutil.relativedelta import relativedelta
 
@@ -21,27 +22,36 @@ class DynamicsByIntervalService(BaseAnalytics):
 
     async def get(
         self,
-        start: datetime,
-        end: datetime,
+        start: date,
+        end: date,
         interval: Interval,
     ) -> DynamicsByInterval:
-        result = await self.session.execute(
-            self.get_query(),
-            params=_StatementParams(
-                user_id=typing.cast(int, self.user),
-                start_date=start,
-                end_date=end,
-                interval_unit=interval,
-                interval_value=self._get_delta(interval),
-            ),
-        )
+        delta = self._get_delta(interval)
+        with warnings.catch_warnings(action='ignore'):
+            result = await self.session.execute(
+                self.get_query(),
+                params=_StatementParams(
+                    user_id=typing.cast(int, self.user.id),
+                    start_date=start,
+                    end_date=end,
+                    interval_unit=interval,
+                    interval_value=delta,
+                ),
+            )
 
-        return DynamicsByInterval(
+        dynamics = DynamicsByInterval(
             start=start,
             end=end,
             interval=interval,
             entries=[r._mapping for r in result.all()],
         )
+
+        if dynamics.entries:
+            # correct start and end according to the truncated interval
+            dynamics.start = dynamics.entries[0].date
+            dynamics.end = dynamics.entries[-1].date + delta
+
+        return dynamics
 
     def _get_delta(self, interval: Interval) -> relativedelta:
         match interval:

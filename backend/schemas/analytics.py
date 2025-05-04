@@ -1,17 +1,24 @@
-from datetime import datetime
+from datetime import date
 from decimal import Decimal
 from enum import Enum
-from typing import Self
+from typing import Final, Self
 
-from pydantic import BaseModel, model_validator
+from dateutil.relativedelta import relativedelta
+from pydantic import BaseModel, Field, model_validator
 
 from schemas.banks import BankOutShort
 from schemas.transactions import TransactionCategoryOutShort
 
+MIN_DATETIME: Final = date(year=2010, month=1, day=1)
+MAX_DATETIME: Final = (date.today() + relativedelta(years=5)).replace(
+    month=1,
+    day=1,
+)
+
 
 class StartEnd(BaseModel):
-    start: datetime
-    end: datetime
+    start: date = Field(ge=MIN_DATETIME)
+    end: date = Field(le=MAX_DATETIME)
 
     @model_validator(mode='after')
     def check_dates(self) -> Self:
@@ -23,13 +30,13 @@ class StartEnd(BaseModel):
 
 class Interval(str, Enum):
     WEEK = 'week'
-    MONTH = 'moth'
+    MONTH = 'month'
     QUARTER = 'quarter'
     YEAR = 'year'
 
 
 class DynamicsByIntervalEntry(BaseModel):
-    timestamp: datetime
+    date: date
     count: int
 
 
