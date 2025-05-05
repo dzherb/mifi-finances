@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import styles from "./App.module.scss"
 import { AuthModal } from "./components/AuthModal/AuthModal"
 import { Header } from './components/Header'
@@ -10,10 +9,6 @@ import { MainPage } from "./pages/MainPage"
 function App() {
   const {data: isAuth} = useIsAuth()
   const {data: user} = useGetUser()
-
-  useEffect(() => {
-    console.log(user)
-  }, [user])
 
   if (!isAuth) {
     return <AuthModal isOpen={true}/>
