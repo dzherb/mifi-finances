@@ -3,7 +3,7 @@ from asyncio import AbstractEventLoopPolicy
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager
 import os
-import platform
+import sys
 from urllib.parse import urlparse
 
 from alembic import command
@@ -28,11 +28,12 @@ type SessionFactory = async_sessionmaker[AsyncSession]
 
 @pytest.fixture(scope='session')
 def event_loop_policy() -> AbstractEventLoopPolicy:
-    if platform.system() == 'Windows':  # pragma: no cover
+    if sys.platform == 'win32':
         return asyncio.DefaultEventLoopPolicy()
-    import uvloop  # type: ignore
+    else:  # noqa: RET505 (mypy)
+        import uvloop
 
-    return uvloop.EventLoopPolicy()  # type: ignore
+        return uvloop.EventLoopPolicy()
 
 
 @pytest.fixture(scope='session')
