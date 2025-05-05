@@ -61,3 +61,35 @@ async def test_delete(crud: BaseCRUD[Bank], bank: BankOut) -> None:
         await crud.get(bank.id)
 
     assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_count_with_empty_filters(
+    crud: BaseCRUD[Bank],
+    session: AsyncSession,
+) -> None:
+    initial_count = await crud.count()
+
+    bank1 = Bank(name='Bank 1')
+    bank2 = Bank(name='Bank 2')
+    session.add_all([bank1, bank2])
+    await session.commit()
+
+    new_count = await crud.count()
+    assert new_count == initial_count + 2
+
+
+async def test_count_with_single_filter(
+    crud: BaseCRUD[Bank],
+    session: AsyncSession,
+) -> None:
+    bank = Bank(name='Bank')
+    session.add(bank)
+    await session.commit()
+
+    count = await crud.count(filters=[Bank.name == 'Bank'])
+    assert count == 1
+
+
+async def test_count_with_no_matches(crud: BaseCRUD[Bank]) -> None:
+    count = await crud.count(filters=[Bank.name == 'Not a bank'])
+    assert count == 0
