@@ -1,0 +1,47 @@
+
+.admPage {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+
+.addWrap {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 16px;
+  padding: 16px;
+  gap: 16px;
+  margin: 32px;
+}
+
+.addMenu {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
+
+.tagsWrap {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+
+}
+
+.tag {
+  display: flex;
+  background-color: var(--primary-color);
+  border-radius: 8px;
+  padding: 4px;
+  color: white;
+  gap: 4px;
+  padding: 8px;
+}
+
+.close {
+  &:hover {
+    cursor: pointer;
+  }
+}
