@@ -13,7 +13,8 @@ export function useLogin() {
     {
       mutationFn: async ({ email, password }: ILoginParams) => {
         const res = await login(email, password)
-        await queryClient.invalidateQueries({ queryKey: ['isAuth'] })
+        await queryClient.invalidateQueries({ queryKey: ['auth'] })
+        await queryClient.invalidateQueries({ queryKey: ['user'] })
 
         return res
       },
