@@ -2,6 +2,12 @@ import axios, { ACCESS, getToken, REFRESH, setCookie, withRetry } from './axios'
 import { isMockApi } from './utils';
 
 
+export interface User {
+  id: number
+  username: string
+  is_admin: boolean
+}
+
 export async function checkAuth(): Promise<boolean> {
   if (isMockApi()) {
     return true
@@ -51,4 +57,24 @@ export async function logout(): Promise<boolean> {
   localStorage.setItem(ACCESS, '')
 
   return res.status === 200;
+}
+
+export async function getUser(): Promise<User | undefined> {
+  if (isMockApi()) {
+    return fakeUser
+  }
+
+  const res = await withRetry(async (instance) => {return instance.get('users/me')})
+
+  if (res.status !== 200) {
+    return undefined
+  }
+
+  return res.data
+}
+
+const fakeUser: User = {
+  id: 1,
+  username: 'user',
+  is_admin: true
 }

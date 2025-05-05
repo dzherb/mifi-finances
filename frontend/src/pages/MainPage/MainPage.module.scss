@@ -40,3 +40,9 @@
   justify-content: center;
   background-color: white;
 }
+
+.analytics {
+  position: fixed !important;
+  top: calc(var(--header-height) + 16px);
+  left: 16px;
+}
