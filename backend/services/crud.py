@@ -1,8 +1,10 @@
 from collections.abc import Sequence
+from typing import Any
 
 from fastapi import HTTPException, status
+from sqlalchemy import func, Select
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.sql._typing import _ColumnExpressionArgument
+from sqlalchemy.sql.expression import ColumnElement
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -10,7 +12,7 @@ from dependencies.params import OrderByItem
 from models.base import BaseModel
 from services.common import is_data_error
 
-type WhereClause = _ColumnExpressionArgument[bool] | bool
+type WhereClause = ColumnElement[bool] | bool
 
 
 class BaseCRUD[T: BaseModel]:
@@ -18,6 +20,15 @@ class BaseCRUD[T: BaseModel]:
 
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
+
+    async def count(
+        self,
+        filters: Sequence[WhereClause] | None = None,
+    ) -> int:
+        query = select(func.count()).select_from(self.model)
+        query = _apply_filters(query, filters)
+        result = await self.session.exec(query)
+        return result.one()
 
     async def get(self, instance_id: int) -> T:
         try:
@@ -46,9 +57,7 @@ class BaseCRUD[T: BaseModel]:
     ) -> Sequence[T]:
         query = select(self.model)
 
-        if filters is not None:
-            for condition in filters:
-                query = query.where(condition)
+        query = _apply_filters(query, filters)
 
         if order_by is not None:
             order_by_seq = (
@@ -117,3 +126,19 @@ class BaseCRUD[T: BaseModel]:
                 ) from e
 
             raise e
+
+
+def _apply_filters[TQuery: Select[Any]](
+    query: TQuery,
+    filters: Sequence[WhereClause] | None = None,
+) -> TQuery:
+    if filters is not None:
+        for condition in filters:
+            where_condition: ColumnElement[bool] = (
+                condition
+                if isinstance(condition, ColumnElement)
+                else (query.selected_columns[0] == condition)
+            )
+            query = query.where(where_condition)
+
+    return query
