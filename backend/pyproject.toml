@@ -17,6 +17,7 @@ dependencies = [
     "pydantic-extra-types[phonenumbers]>=2.10.3",
     "pydantic-settings>=2.8.1",
     "pyjwt>=2.10.1",
+    "python-dateutil>=2.9.0.post0",
     "python-multipart>=0.0.20",
     "sqlmodel>=0.0.24",
     "uvicorn>=0.34.0",

@@ -41,7 +41,7 @@ migrations: install-all-requirements
 
 .PHONY: migrate
 migrate: install-all-requirements
-	@uv run alembic upgrade head
+	@uv run --no-dev alembic upgrade head
 
 .PHONY: seed
 seed: migrate
