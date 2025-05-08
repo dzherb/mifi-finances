@@ -32,7 +32,7 @@ depends_on = ["core", "models"]
 
 [[modules ]]
 path = "db"
-depends_on = []
+depends_on = ["core"]
 
 [[modules ]]
 path = "models"
@@ -44,11 +44,11 @@ depends_on = []
 
 [[modules ]]
 path = "scripts"
-depends_on = ["models"]
+depends_on = ["models", "core", "db"]
 
 [[modules ]]
 path = "api.v1.endpoints"
-depends_on = ["dependencies", "services", "schemas", "models", "api"]
+depends_on = ["dependencies", "services", "schemas", "models", "api", "core"]
 
 [[modules ]]
 path = "tests"
