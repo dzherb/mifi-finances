@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 import typing
-from typing import Never
+from typing import assert_never
 import warnings
 
 from dateutil.relativedelta import relativedelta
@@ -65,5 +65,4 @@ class DynamicsByIntervalService(BaseAnalytics):
                 return relativedelta(years=1)
             case _:
                 # Ensure all cases are exhausted
-                # otherwise mypy will throw an error
-                _: Never = interval  # noqa: RET503
+                assert_never(interval)
