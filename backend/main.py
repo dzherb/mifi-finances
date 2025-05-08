@@ -4,6 +4,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
+import uvicorn
+from uvicorn_loguru_integration import (  # type: ignore[import-untyped]
+    run_uvicorn_loguru as run,
+)
 
 from api.v1.router import api_router
 from core.config import settings
@@ -29,7 +33,7 @@ app = FastAPI(
     description='',
     lifespan=lifespan,
     default_response_class=ORJSONResponse,
-    debug=True,
+    debug=settings.DEBUG,
 )
 
 app.add_middleware(
@@ -41,3 +45,17 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix='/api/v1')
+
+
+def main() -> None:  # pragma: no cover
+    run(
+        uvicorn.Config(
+            'main:app',
+            host=settings.SERVER_HOST,
+            port=settings.SERVER_PORT,
+        ),
+    )
+
+
+if __name__ == '__main__':
+    main()

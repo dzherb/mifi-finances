@@ -6,6 +6,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     BASE_DIR: Path = Path(__file__).resolve().parent.parent
     DEBUG: bool = False
+    SERVER_HOST: str = 'localhost'
+    SERVER_PORT: int = 8000
 
     DATABASE_URL: str
     SECRET_KEY: str
