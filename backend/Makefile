@@ -20,7 +20,7 @@ lint: install-all-requirements
 	@uv run ruff format --check .
 
 .PHONY: lint-dotenv
-lint-dotenv:
+lint-dotenv: install-all-requirements
 	@uv run dotenv-linter .env .env.template
 
 .PHONY: type-check
@@ -41,7 +41,7 @@ migrations: install-all-requirements
 
 .PHONY: migrate
 migrate: install-all-requirements
-	@uv run alembic upgrade head
+	@uv run --no-dev alembic upgrade head
 
 .PHONY: seed
 seed: migrate
@@ -53,7 +53,7 @@ flush: migrate
 
 .PHONY: runserver
 runserver: migrate
-	@uv run uvicorn main:app --reload
+	@uv run main.py
 
 .PHONY: dependency-graph
 dependency-graph:

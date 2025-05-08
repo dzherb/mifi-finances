@@ -130,9 +130,11 @@ dependencies = [
     { name = "pydantic-extra-types", extra = ["phonenumbers"] },
     { name = "pydantic-settings" },
     { name = "pyjwt" },
+    { name = "python-dateutil" },
     { name = "python-multipart" },
     { name = "sqlmodel" },
     { name = "uvicorn" },
+    { name = "uvicorn-loguru-integration" },
     { name = "uvloop", marker = "sys_platform != 'win32'" },
 ]
 
@@ -170,9 +172,11 @@ requires-dist = [
     { name = "pydantic-extra-types", extras = ["phonenumbers"], specifier = ">=2.10.3" },
     { name = "pydantic-settings", specifier = ">=2.8.1" },
     { name = "pyjwt", specifier = ">=2.10.1" },
+    { name = "python-dateutil", specifier = ">=2.9.0.post0" },
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "sqlmodel", specifier = ">=0.0.24" },
     { name = "uvicorn", specifier = ">=0.34.0" },
+    { name = "uvicorn-loguru-integration", specifier = ">=0.3.1" },
     { name = "uvloop", marker = "sys_platform != 'win32'", specifier = ">=0.21.0" },
 ]
 
@@ -660,6 +664,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3a/05/a1dae3dffd1116099471c643b8924f5aa6524411dc6c63fdae648c4f1aca/loguru-0.7.3.tar.gz", hash = "sha256:19480589e77d47b8d85b2c827ad95d49bf31b0dcde16593892eb51dd18706eb6", size = 63559 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0c/29/0348de65b8cc732daa3e33e67806420b2ae89bdce2b04af740289c5c6c8c/loguru-0.7.3-py3-none-any.whl", hash = "sha256:31a33c10c8e1e10422bfd431aeb5d351c7cf7fa671e3c4df004162264b28220c", size = 61595 },
+]
+
+[[package]]
+name = "loguru-logging-intercept"
+version = "0.1.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "loguru" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/32/9d/12d76dfcac97943d439d760acb960d423e0f2b66530d2038374c9f192afa/loguru_logging_intercept-0.1.5.tar.gz", hash = "sha256:581038bf1310fbb06cda48afbd373e72bbc01d51c4df058f49081ab7a7c5f984", size = 3194 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f6/ee/78df4f27c14490613886d0a03959f363002cb76378266987805d92adac91/loguru_logging_intercept-0.1.5-py3-none-any.whl", hash = "sha256:d0e0397fe83e4f1122cbd37bf5d73f8c878099b6fb52a236d5123654f46fc0c5", size = 3548 },
 ]
 
 [[package]]
@@ -1596,6 +1612,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/4b/4d/938bd85e5bf2edeec766267a5015ad969730bb91e31b44021dfe8b22df6c/uvicorn-0.34.0.tar.gz", hash = "sha256:404051050cd7e905de2c9a7e61790943440b3416f49cb409f965d9dcd0fa73e9", size = 76568 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/61/14/33a3a1352cfa71812a3a21e8c9bfb83f60b0011f5e36f2b1399d51928209/uvicorn-0.34.0-py3-none-any.whl", hash = "sha256:023dc038422502fa28a09c7a30bf2b6991512da7dcdb8fd35fe57cfc154126f4", size = 62315 },
+]
+
+[[package]]
+name = "uvicorn-loguru-integration"
+version = "0.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "loguru-logging-intercept" },
+    { name = "uvicorn" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/db/a7/4da05438709c4836b9805af66f3bc4fcf57f09bc5edf76399cdc9740234e/uvicorn_loguru_integration-0.3.1.tar.gz", hash = "sha256:5ec69cd12dfcb462a03157344c885c4edaebc59b724162e3544da575596fe40d", size = 2863 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/01/33/f5e0d82fa12513f751a94f824889768f93fb2e972360b2dd3fd3bf76c8e5/uvicorn_loguru_integration-0.3.1-py3-none-any.whl", hash = "sha256:cb7a8fb368730241b1e6fea68178950b6d5f6c20e43e391f517fad3e51f4b483", size = 2924 },
 ]
 
 [[package]]

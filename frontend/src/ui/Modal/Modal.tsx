@@ -1,5 +1,5 @@
 import { createPortal } from "react-dom"
-import { ComponentProps, useMemo } from "react"
+import { ComponentProps } from "react"
 import styles from './Modal.module.scss'
 
 export interface ModalProps extends ComponentProps<"div"> {
