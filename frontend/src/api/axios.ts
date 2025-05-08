@@ -4,10 +4,11 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios'
 export const REFRESH = "refresh-token"
 export const ACCESS = "access-token"
 
-const URL = "http://localhost:8000/api/v1"
+const BASE_URL = 'http://' + import.meta.env.VITE_BACKEND_SERVER_HOST + ':' + import.meta.env.VITE_BACKEND_SERVER_PORT
+const API_URL = BASE_URL + "/api/v1"
 
 const instance = axios.create({
-  baseURL: URL,
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${localStorage.getItem(ACCESS)}`
@@ -16,7 +17,7 @@ const instance = axios.create({
 
 export async function withRetry(req: (inst: AxiosInstance) => Promise<AxiosResponse<any, any>>) {
   const axiosInstance = axios.create({
-    baseURL: URL,
+    baseURL: API_URL,
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${localStorage.getItem(ACCESS)}`

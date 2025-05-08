@@ -6,12 +6,11 @@ import { TextInput } from "../../ui/TextInput";
 import { Button } from "../../ui/Button";
 import { useAddTransaction } from "../../hooks/transaction/useAddTransaction";
 import { useUpdateTransaction } from "../../hooks/transaction/useUpdateTransaction";
-import { GetTransactionsReq, PartyType, Transaction, TransactionStatus, TransactionType } from "../../api/transaction.api";
+import { PartyType, Transaction, TransactionStatus, TransactionType } from "../../api/transaction.api";
 import { Autocomplete } from "../../ui/Autocomplete";
 import { IOption, PARTY_TYPE_OPTIONS, TRANSACTION_STATUS_OPTIONS, TRANSACTION_TYPE_OPTIONS } from "../../utils";
 import { useGetTransactionsCategories } from "../../hooks/transaction/useGetCategories";
 import { useGetBanks } from "../../hooks/bank/useGetBanks";
-import { AxiosError } from "axios";
 
 export type TTransactionFormMode = "view" | "add" | "edit" | undefined
 

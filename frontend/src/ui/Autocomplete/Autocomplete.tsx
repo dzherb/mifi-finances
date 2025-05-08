@@ -1,5 +1,5 @@
 import { TextField } from '@mui/material';
-import MuiAutocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
+import MuiAutocomplete from '@mui/material/Autocomplete';
 import styles from './Autocomplete.module.scss'
 import { IOption } from '../../utils';
 import clsx from 'clsx';
@@ -18,7 +18,7 @@ interface IAutocomplete<T> extends ComponentProps<"span"> {
 }
 
 export function Autocomplete<T=string>(props: IAutocomplete<T>)  {
-  const {value, setValue, label, options, className, style, onFocus, onBlur, disabled} = props
+  const {value, setValue, label, options, className, style, disabled} = props
   
   return (
     <MuiAutocomplete
