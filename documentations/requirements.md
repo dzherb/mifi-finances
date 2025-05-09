@@ -7,7 +7,7 @@
 ## Use Cases
 
 **UML Диаграмма прецедентов**
-![Иллюстрация к проекту](https://github.com/dzherb/mifi-finances/blob/main/documentations/img/diagram_1.png)
+![Диаграмма прецедентов](https://github.com/dzherb/mifi-finances/blob/main/documentations/img/diagram_1.png)
 
 ### Use Case 1 — Работа с транзакциями
 
@@ -105,7 +105,7 @@
 
 ## Последовательность работы системы
 Общий бизнес процесс работы пользователя с системой описан на диаграмме деятельности:
-*Здесь будет вставлена диаграмма 2*
+![Диаграмма деятельности](https://github.com/dzherb/mifi-finances/blob/main/documentations/img/diagram_2.png)
 
 ## Test Cases (сценарии тестирования) 
 Реестр тест-кейсов для ручного тестирования системы.
