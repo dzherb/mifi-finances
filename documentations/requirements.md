@@ -7,7 +7,7 @@
 ## Use Cases
 
 **UML Диаграмма прецедентов**
-![Иллюстрация к проекту](https://github.com/AgathaCott/mifi-finances/raw/main/documentations/img/diagram_1.jpg)
+![Иллюстрация к проекту](https://github.com/AgathaCott/mifi-finances/main/documentations/img/diagram_1.png)
 
 ### Use Case 1 — Работа с транзакциями
 
