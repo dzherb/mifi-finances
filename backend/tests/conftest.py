@@ -3,7 +3,7 @@ from asyncio import AbstractEventLoopPolicy
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager
 import os
-import platform
+import sys
 from urllib.parse import urlparse
 
 from alembic import command
@@ -15,7 +15,6 @@ from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncEngine
 from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.types import ASGIApp
-import uvloop
 
 from api.v1.router import api_router
 from core.config import settings
@@ -29,10 +28,12 @@ type SessionFactory = async_sessionmaker[AsyncSession]
 
 @pytest.fixture(scope='session')
 def event_loop_policy() -> AbstractEventLoopPolicy:
-    if platform.system() == 'Windows':  # pragma: no cover
+    if sys.platform == 'win32':
         return asyncio.DefaultEventLoopPolicy()
+    else:  # noqa: RET505 (mypy)
+        import uvloop
 
-    return uvloop.EventLoopPolicy()
+        return uvloop.EventLoopPolicy()
 
 
 @pytest.fixture(scope='session')
