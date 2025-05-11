@@ -3,10 +3,11 @@ from sqlalchemy.exc import DataError, DBAPIError
 
 
 def is_data_error(exc: DBAPIError) -> bool:
-    # This is True while using psycopg
+    # This is True when using psycopg
     if isinstance(exc, DataError):  # pragma: no cover
         return True
 
+    # Check if it's an asyncpg error
     if exc.orig:
         return isinstance(exc.orig.__cause__, AsyncpgDataError)
 

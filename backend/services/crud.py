@@ -1,7 +1,8 @@
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, cast
 
 from fastapi import HTTPException, status
+from fastapi_filter.contrib.sqlalchemy import Filter
 from sqlalchemy import func, Select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.sql.expression import ColumnElement
@@ -13,6 +14,7 @@ from models.base import BaseModel
 from services.common import is_data_error
 
 type WhereClause = ColumnElement[bool] | bool
+type Filters = Sequence[WhereClause | Filter] | Filter
 
 
 class BaseCRUD[T: BaseModel]:
@@ -23,7 +25,7 @@ class BaseCRUD[T: BaseModel]:
 
     async def count(
         self,
-        filters: Sequence[WhereClause] | None = None,
+        filters: Filters | None = None,
     ) -> int:
         query = select(func.count()).select_from(self.model)
         query = _apply_filters(query, filters)
@@ -50,7 +52,7 @@ class BaseCRUD[T: BaseModel]:
 
     async def list(
         self,
-        filters: Sequence[WhereClause] | None = None,
+        filters: Filters | None = None,
         order_by: Sequence[OrderByItem] | None = None,
         offset: int | None = None,
         limit: int | None = None,
@@ -130,15 +132,42 @@ class BaseCRUD[T: BaseModel]:
 
 def _apply_filters[TQuery: Select[Any]](
     query: TQuery,
-    filters: Sequence[WhereClause] | None = None,
+    filters: Filters | None = None,
 ) -> TQuery:
-    if filters is not None:
-        for condition in filters:
-            where_condition: ColumnElement[bool] = (
-                condition
-                if isinstance(condition, ColumnElement)
-                else (query.selected_columns[0] == condition)
-            )
-            query = query.where(where_condition)
+    if filters is None:
+        return query
+
+    if isinstance(filters, Filter):
+        return cast(TQuery, filters.filter(query))
+
+    for condition in filters:
+        if isinstance(condition, Filter):
+            query = condition.filter(query)
+            continue
+
+        where_condition: ColumnElement[bool] = (
+            condition
+            if isinstance(condition, ColumnElement)
+            else (query.selected_columns[0] == condition)
+        )
+        query = query.where(where_condition)
 
     return query
+
+
+def merge_filters(first: Filters | None, second: Filters | None) -> Filters:
+    result: Sequence[WhereClause | Filter] = []
+
+    if first is not None:
+        if isinstance(first, Sequence):  # noqa: SIM108
+            result = first
+        else:
+            result = [first]
+
+    if second is not None:
+        if isinstance(second, Sequence):
+            result = [*result, *second]
+        else:
+            result = [*result, second]
+
+    return result

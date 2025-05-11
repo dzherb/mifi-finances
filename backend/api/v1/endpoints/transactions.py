@@ -1,13 +1,17 @@
 from collections.abc import Sequence
-from typing import Annotated
+from typing import Annotated, Final
 
-from fastapi import APIRouter, Query, status
-from fastapi.params import Depends
+from fastapi import APIRouter, status
+from fastapi.params import Depends, Query
+from fastapi_filter import FilterDepends
 
 from api.params import EntityID
 from api.responses import BAD_REQUEST, FORBIDDEN, NOT_FOUND, UNAUTHORIZED
 from dependencies.db import Session
-from dependencies.params import order_by_dependency, OrderByItem
+from dependencies.params import (
+    order_by_dependency,
+    OrderByItem,
+)
 from dependencies.users import AdminUser, CurrentUser
 from models.transaction import Transaction, TransactionCategory
 from schemas.common import SequenceResponse
@@ -17,6 +21,7 @@ from schemas.transactions import (
     TransactionCategoryOutShort,
     TransactionCategoryUpdate,
     TransactionCreate,
+    TransactionFilters,
     TransactionOut,
     TransactionUpdate,
 )
@@ -28,9 +33,21 @@ from services.transactions import (
 router = APIRouter()
 
 
+TRANSACTIONS_ORDER_BY_FIELDS: Final = (
+    'occurred_at',
+    'created_at',
+    'updated_at',
+    'transaction_type',
+    'amount',
+    'status',
+    'recipient_inn',
+    'recipient_account_number',
+    'recipient_phone',
+)
+
 _OrderBy = Depends(
     order_by_dependency(
-        fields=('occurred_at', 'created_at', 'updated_at'),
+        fields=TRANSACTIONS_ORDER_BY_FIELDS,
         default=('-occurred_at',),
     ),
 )
@@ -41,15 +58,17 @@ _OrderBy = Depends(
     responses=UNAUTHORIZED | BAD_REQUEST,
     response_model=SequenceResponse[TransactionOut],
 )
-async def my_transactions(
+async def my_transactions(  # noqa: PLR0913
     user: CurrentUser,
     session: Session,
     order_by: Annotated[list[OrderByItem], _OrderBy],
+    filters: Annotated[TransactionFilters, FilterDepends(TransactionFilters)],
     offset: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(gt=0, lt=100)] = 10,
 ) -> SequenceResponse[Transaction]:
     return await TransactionService(session, user).user_transactions(
         order_by=order_by,
+        filters=filters,
         offset=offset,
         limit=limit,
     )

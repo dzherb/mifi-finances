@@ -15,7 +15,7 @@ from models.transaction import (
 from models.user import User
 from schemas.common import SequenceResponse
 from schemas.transactions import TransactionCreate, TransactionUpdate
-from services.crud import BaseCRUD
+from services.crud import BaseCRUD, Filters, merge_filters
 
 CATEGORY_NAME_NOT_UNIQUE_EXCEPTION = HTTPException(
     status_code=status.HTTP_400_BAD_REQUEST,
@@ -203,13 +203,18 @@ class TransactionService:
     async def user_transactions(
         self,
         order_by: Sequence[OrderByItem] | None = None,
+        filters: Filters | None = None,
         offset: int | None = None,
         limit: int | None = None,
     ) -> SequenceResponse[Transaction]:
-        user_filter = (Transaction.user_id == self.user.id,)
-        count = await self.crud.count(filters=user_filter)
+        filters = merge_filters(
+            (Transaction.user_id == self.user.id,),
+            filters,
+        )
+
+        count = await self.crud.count(filters=filters)
         items = await self.crud.list(
-            filters=(user_filter),
+            filters=filters,
             order_by=order_by,
             offset=offset,
             limit=limit,

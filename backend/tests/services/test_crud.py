@@ -1,10 +1,12 @@
 from fastapi import HTTPException, status
+from fastapi_filter.contrib.sqlalchemy import Filter
 import pytest
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from models.bank import Bank
 from schemas.banks import BankOut
-from services.crud import BaseCRUD
+from services.crud import _apply_filters, BaseCRUD, Filters, merge_filters
 
 
 @pytest.fixture
@@ -93,3 +95,70 @@ async def test_count_with_single_filter(
 async def test_count_with_no_matches(crud: BaseCRUD[Bank]) -> None:
     count = await crud.count(filters=[Bank.name == 'Not a bank'])
     assert count == 0
+
+
+class BankFilter(Filter):
+    name__like: str | None = None
+    id__gte: int | None = None
+
+    class Constants(Filter.Constants):
+        model = Bank
+
+
+@pytest.mark.parametrize(
+    ('first', 'second', 'expected'),
+    [
+        (Bank.id > 1, Bank.name != 'T', [Bank.id > 1, Bank.name != 'T']),  # type: ignore[operator]
+        ([Bank.id > 1], Bank.name != 'T', [Bank.id > 1, Bank.name != 'T']),
+        (Bank.id > 1, [Bank.name != 'T'], [Bank.id > 1, Bank.name != 'T']),  # type: ignore[operator]
+        ([Bank.id > 1], [Bank.name != 'T'], [Bank.id > 1, Bank.name != 'T']),
+        (
+            BankFilter(name__like='%sb'),
+            BankFilter(id__gte=10),
+            [BankFilter(name__like='%sb'), BankFilter(id__gte=10)],
+        ),
+        (
+            [BankFilter(name__like='%sb')],
+            BankFilter(id__gte=10),
+            [BankFilter(name__like='%sb'), BankFilter(id__gte=10)],
+        ),
+        (
+            BankFilter(name__like='%sb'),
+            [BankFilter(id__gte=10)],
+            [BankFilter(name__like='%sb'), BankFilter(id__gte=10)],
+        ),
+        (
+            [BankFilter(name__like='%sb')],
+            [BankFilter(id__gte=10)],
+            [BankFilter(name__like='%sb'), BankFilter(id__gte=10)],
+        ),
+        (
+            [BankFilter(name__like='%sb'), Bank.name != 'T'],
+            BankFilter(id__gte=10),
+            [
+                BankFilter(name__like='%sb'),
+                Bank.name != 'T',
+                BankFilter(id__gte=10),
+            ],
+        ),
+        (
+            [BankFilter(name__like='%sb')],
+            [Bank.name != 'T', BankFilter(id__gte=10)],
+            [
+                BankFilter(name__like='%sb'),
+                Bank.name != 'T',
+                BankFilter(id__gte=10),
+            ],
+        ),
+    ],
+)
+def test_merge_and_apply_filters(
+    first: Filters,
+    second: Filters,
+    expected: Filters,
+) -> None:
+    merged_filters = merge_filters(first, second)
+    query = _apply_filters(select(Bank), merged_filters)
+
+    query_expected = _apply_filters(select(Bank), expected)
+    assert query.compare(query_expected)

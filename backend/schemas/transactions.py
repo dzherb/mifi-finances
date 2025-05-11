@@ -1,12 +1,14 @@
 from datetime import datetime
 from decimal import Decimal
 
+from fastapi_filter.contrib.sqlalchemy import Filter
 from pydantic import BaseModel
 from sqlmodel import Field
 
 from core.validators import INN, PhoneNumber
 from models.transaction import (
     PartyType,
+    Transaction,
     TransactionBase,
     TransactionCategoryBase,
     TransactionStatus,
@@ -59,8 +61,37 @@ class TransactionUpdate(BaseModel):
 
 class TransactionOutShort(TransactionBase):
     id: int
+    user_id: int
 
 
 class TransactionOut(TransactionOutShort):
     created_at: datetime
     updated_at: datetime | None
+
+
+class TransactionFilters(Filter):
+    created_at: datetime | None = None
+    created_at__gt: datetime | None = None
+    created_at__lt: datetime | None = None
+
+    updated_at: datetime | None = None
+    updated_at__gt: datetime | None = None
+    updated_at__lt: datetime | None = None
+
+    occurred_at: datetime | None = None
+    occurred_at__gt: datetime | None = None
+    occurred_at__lt: datetime | None = None
+
+    status: TransactionStatus | None = None
+
+    account_number: str | None = None
+    account_number__like: str | None = None
+
+    recipient_inn: INN | None = None
+    recipient_inn__like: str | None = None
+
+    amount__gt: Decimal | None = None
+    amount__lt: Decimal | None = None
+
+    class Constants(Filter.Constants):
+        model = Transaction
