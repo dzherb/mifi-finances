@@ -65,6 +65,8 @@ filterwarnings = [
     "ignore::DeprecationWarning:schemathesis",
     "ignore::DeprecationWarning:hypothesis_jsonschema",
     "ignore::hypothesis.errors.HypothesisSideeffectWarning:hypothesis",
+    # fastapi_filter issue
+    "ignore::DeprecationWarning:fastapi_filter",
 ]
 xfail_strict = true
 
