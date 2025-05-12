@@ -1,6 +1,5 @@
 from datetime import date, timedelta
 import typing
-from typing import Never
 import warnings
 
 from dateutil.relativedelta import relativedelta
@@ -66,4 +65,4 @@ class DynamicsByIntervalService(BaseAnalytics):
             case _:
                 # Ensure all cases are exhausted
                 # otherwise mypy will throw an error
-                _: Never = interval  # noqa: RET503
+                typing.assert_never(interval)
