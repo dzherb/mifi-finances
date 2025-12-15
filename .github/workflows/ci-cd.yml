@@ -59,7 +59,7 @@ jobs:
           uv run coverage combine
           uv run coverage json
       - name: Upload coverage data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: covdata
           path: backend/coverage.json
